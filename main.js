@@ -472,13 +472,11 @@ function focusBrowserWindow(browserName = 'chrome') {
   if (process.platform !== 'win32') return;
   const script = `
     $ws = New-Object -ComObject WScript.Shell;
-    $procs = Get-Process chrome, msedge, brave, firefox, arc -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 };
-    if ($procs) {
-      foreach ($p in $procs) {
-        try {
-          $ws.AppActivate($p.Id) | Out-Null;
-        } catch {}
-      }
+    $titles = @('YouTube', 'Chrome', 'Google Chrome', 'Edge', 'Microsoft Edge', 'Brave');
+    foreach ($t in $titles) {
+      try {
+        if ($ws.AppActivate($t)) { break; }
+      } catch {}
     }
   `;
   exec(`powershell -NoProfile -Command "${script.replace(/\r?\n\s*/g, ' ')}"`, (err) => {
@@ -935,42 +933,71 @@ function startFocusSessionInternal(sessionData) {
     }
   }
 
-  // 1. Central Blur Policy Evaluation
+  // 1 & 2. Window Layering and Task Launching
   const shouldBlur = shouldBlurTask(sessionData);
-  if (shouldBlur) {
-    if (!blurOverlayWindow || blurOverlayWindow.isDestroyed()) {
-      createBlurOverlayWindow();
-    }
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { x, y, width, height } = primaryDisplay.workArea;
-    blurOverlayWindow.setBounds({ x, y, width, height });
-    if (isUrl) {
-      if (process.platform === 'win32') {
-        exec('powershell -NoProfile -Command "(New-Object -ComObject Shell.Application).MinimizeAll()"', () => {});
-      }
-      blurOverlayWindow.setAlwaysOnTop(false);
-      blurOverlayWindow.showInactive();
-    } else {
-      blurOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
-      blurOverlayWindow.show();
-      blurOverlayWindow.focus();
-    }
-    blurOverlayWindow.webContents.send('start-overlay', sessionData);
-  } else {
-    if (blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
-      blurOverlayWindow.hide();
-    }
-  }
 
-  // 2. URL Task Execution or Extension Session Start
   if (isUrl) {
+    // URL Tasks: Strict 3-Layer Desktop Architecture
+    // Layer 1 (Bottom): Previous apps/browsers minimized
+    // Layer 2 (Middle): Fullscreen blur overlay backdrop (with timer & Open/End task buttons)
+    // Layer 3 (Top): URL Task browser window (Chrome/Edge/Brave maximized in foreground)
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.minimize();
     }
-    setTimeout(() => {
-      executeUrlTask(sessionData);
-    }, 150);
+
+    const launchUrlSession = () => {
+      if (shouldBlur) {
+        // If blur overlay had previously been set to alwaysOnTop (e.g. from Namaz), recreate cleanly
+        if (blurOverlayWindow && !blurOverlayWindow.isDestroyed() && blurOverlayWindow.isAlwaysOnTop()) {
+          blurOverlayWindow.destroy();
+          blurOverlayWindow = null;
+        }
+        if (!blurOverlayWindow || blurOverlayWindow.isDestroyed()) {
+          createBlurOverlayWindow();
+        }
+        const primaryDisplay = screen.getPrimaryDisplay();
+        const { x, y, width, height } = primaryDisplay.workArea;
+        blurOverlayWindow.setBounds({ x, y, width, height });
+        blurOverlayWindow.setAlwaysOnTop(false);
+        blurOverlayWindow.showInactive();
+        blurOverlayWindow.webContents.send('start-overlay', sessionData);
+      } else {
+        if (blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
+          blurOverlayWindow.hide();
+        }
+      }
+
+      // Execute URL task AFTER previous windows are minimized and blur is positioned
+      setTimeout(() => {
+        executeUrlTask(sessionData);
+      }, 150);
+    };
+
+    if (process.platform === 'win32') {
+      exec('powershell -NoProfile -Command "(New-Object -ComObject Shell.Application).MinimizeAll()"', () => {
+        launchUrlSession();
+      });
+    } else {
+      launchUrlSession();
+    }
   } else {
+    // Non-URL tasks (Namaz, Timed Tasks)
+    if (shouldBlur) {
+      if (!blurOverlayWindow || blurOverlayWindow.isDestroyed()) {
+        createBlurOverlayWindow();
+      }
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { x, y, width, height } = primaryDisplay.workArea;
+      blurOverlayWindow.setBounds({ x, y, width, height });
+      blurOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
+      blurOverlayWindow.show();
+      blurOverlayWindow.focus();
+      blurOverlayWindow.webContents.send('start-overlay', sessionData);
+    } else {
+      if (blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
+        blurOverlayWindow.hide();
+      }
+    }
     extensionServer.startSession(sessionData);
   }
 
@@ -1122,6 +1149,9 @@ ipcMain.handle('start-focus-session', async (event, sessionData) => {
 ipcMain.handle('reopen-task-browser', async () => {
   if (currentActiveSession && (currentActiveSession.isUrlTask || (currentActiveSession.allowedUrls && currentActiveSession.allowedUrls.length > 0))) {
     console.log('[SESSION] User clicked Open Task: Reopening / focusing browser window for active session.');
+    if (blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
+      blurOverlayWindow.blur();
+    }
     executeUrlTask(currentActiveSession);
     return true;
   }

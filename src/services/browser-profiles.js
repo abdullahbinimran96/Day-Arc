@@ -244,11 +244,7 @@ class BrowserProfileService {
       if (this.extensionPath && fs.existsSync(this.extensionPath)) {
         args.push(`--load-extension=${this.extensionPath}`);
       }
-      if (urlList.length === 1) {
-        args.push(`--app=${urlList[0]}`);
-      } else {
-        args.push('--new-window', ...urlList);
-      }
+      args.push('--new-window', '--start-maximized', ...urlList);
     }
 
     const commandStr = `"${exePath}" ${args.map(a => `"${a}"`).join(' ')}`;

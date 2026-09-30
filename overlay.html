@@ -330,9 +330,12 @@
       reopenBtn.addEventListener('click', async () => {
         if (!window.dayarc) return;
         try {
+          const origHtml = reopenBtn.innerHTML;
+          reopenBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">sync</span> Opening...';
           if (window.dayarc.reopenTaskBrowser) {
             await window.dayarc.reopenTaskBrowser();
           }
+          setTimeout(() => { reopenBtn.innerHTML = origHtml; }, 2000);
         } catch (e) {
           console.error('[Overlay] Error reopening task browser:', e);
         }
