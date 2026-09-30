@@ -100,9 +100,11 @@ class BrowserExtensionInstaller {
 
     for (const b of browsers) {
       try {
-        const cmd = `reg add "${b.regKey}" /v path /t REG_SZ /d "${this.extensionPath}" /f & reg add "${b.regKey}" /v version /t REG_SZ /d "${this.extensionVersion}" /f`;
-        const { exec } = require('child_process');
-        exec(cmd, () => {});
+        const cmdPath = `reg add "${b.regKey}" /v path /t REG_SZ /d "${this.extensionPath}" /f`;
+        const cmdVer = `reg add "${b.regKey}" /v version /t REG_SZ /d "${this.extensionVersion}" /f`;
+
+        execSync(cmdPath, { stdio: 'ignore' });
+        execSync(cmdVer, { stdio: 'ignore' });
 
         results.push({ browser: b.name, id: b.id, status: 'installed', regKey: b.regKey });
         console.log(`[Extension Installer] Successfully registered extension in ${b.name} (${b.regKey})`);

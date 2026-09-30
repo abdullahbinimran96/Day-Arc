@@ -70,6 +70,21 @@ if (!gotTheLock) {
 
 async function createWindow() {
   await dbManager.init();
+  stevenBlack.load();
+
+  // Scan and register bundled sounds from resources/ directory
+  bundledSounds.scanAndRegister(dbManager);
+
+  // Auto-install and register Day Arc Extension across all Chromium-based browsers (Chrome, Edge, Brave, etc.)
+  try {
+    browserInstaller.installAll();
+  } catch (e) {
+    console.warn('[Extension Auto-Install Error]:', e);
+  }
+
+  // Sync auto-start registry and startup shortcut
+  const autoStartEnabled = dbManager.getSetting('auto_start') !== '0';
+  autoStartManager.sync(autoStartEnabled);
 
   const icoPath = path.join(__dirname, 'build', 'icon.ico');
   const pngPath = path.join(__dirname, 'assets', 'icon.png');
@@ -85,7 +100,6 @@ async function createWindow() {
     backgroundColor: '#11121B',
     icon: appIcon,
     frame: true,
-    show: false, // Prevents blank white/dark flash; displays instantly once ready
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -96,12 +110,6 @@ async function createWindow() {
   });
 
   mainWindow.loadFile('index.html');
-
-  // Show window immediately once painted
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-    mainWindow.focus();
-  });
 
   // Open external links safely in the default system browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -143,35 +151,18 @@ async function createWindow() {
   });
 
   createTray(appIcon);
+  createBlurOverlayWindow();
+  createTaskbarWidgetWindow();
   setupExtensionServer();
   startBackgroundCountdownService();
 
-  // Run non-critical background maintenance tasks asynchronously without blocking window display
-  setImmediate(async () => {
-    try {
-      stevenBlack.load();
-    } catch (e) {}
-
-    try {
-      bundledSounds.scanAndRegister(dbManager);
-    } catch (e) {}
-
-    try {
-      browserInstaller.installAll();
-    } catch (e) {}
-
-    try {
-      const autoStartEnabled = dbManager.getSetting('auto_start') !== '0';
-      autoStartManager.sync(autoStartEnabled);
-    } catch (e) {}
-
-    try {
-      updateService = new UpdateService(mainWindow);
-      updateService.startAutomaticCheck();
-    } catch (e) {
-      console.warn('[Auto-Updater Init Warning]:', e.message);
-    }
-  });
+  // Initialize Auto-Updater Service
+  try {
+    updateService = new UpdateService(mainWindow);
+    updateService.startAutomaticCheck();
+  } catch (e) {
+    console.warn('[Auto-Updater Init Warning]:', e.message);
+  }
 
   // Listen for system sleep and wake events to guarantee scheduler continuous execution
   try {

@@ -39,10 +39,6 @@ class AutoStartManager {
         return;
       }
 
-      if (fs.existsSync(this.startupShortcutPath)) {
-        return;
-      }
-
       if (!fs.existsSync(this.startupFolder)) {
         fs.mkdirSync(this.startupFolder, { recursive: true });
       }
@@ -67,10 +63,8 @@ Set-ItemProperty -Path $RegPath -Name "Day Arc" -Value "wscript.exe \`"${this.vb
 `;
       const tempPs1 = path.join(this.projectDir, 'sync-autostart.ps1');
       fs.writeFileSync(tempPs1, psScript);
-      const { exec } = require('child_process');
-      exec(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`, () => {
-        try { if (fs.existsSync(tempPs1)) fs.unlinkSync(tempPs1); } catch (e) {}
-      });
+      execSync(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`);
+      if (fs.existsSync(tempPs1)) fs.unlinkSync(tempPs1);
 
       console.log(`[AutoStart] Enabled Day Arc auto-start in Startup folder and Registry.`);
     } catch (err) {
