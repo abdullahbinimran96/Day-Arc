@@ -2,8 +2,7 @@
 
 !macro customInstall
   DetailPrint "Ensuring previous Day Arc instances are closed before updating files..."
-  nsExec::Exec 'taskkill /F /IM "Day Arc.exe" /T'
-  nsExec::Exec 'taskkill /F /IM day-arc.exe /T'
+  nsExec::Exec 'cmd /c taskkill /F /IM "Day Arc.exe" /IM day-arc.exe /T >nul 2>&1'
 !macroend
 
 !macro customUnInstall

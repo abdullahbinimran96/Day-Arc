@@ -65,16 +65,14 @@ class BundledSoundsManager {
         .join(' ');
 
       const soundId = `bundled-${baseName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+      const isAlreadyRegistered = existingSounds.some(s => s.id === soundId);
 
-      // Convert audio file to Base64 data URL for instant playback
-      try {
-        const fileBuffer = fs.readFileSync(file.fullPath);
-        const mimeType = file.ext === '.mp3' ? 'audio/mpeg' : (file.ext === '.wav' ? 'audio/wav' : 'audio/ogg');
-        const dataUrl = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+      if (!isAlreadyRegistered) {
+        try {
+          const fileBuffer = fs.readFileSync(file.fullPath);
+          const mimeType = file.ext === '.mp3' ? 'audio/mpeg' : (file.ext === '.wav' ? 'audio/wav' : 'audio/ogg');
+          const dataUrl = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
 
-        const isAlreadyRegistered = existingSounds.some(s => s.id === soundId);
-
-        if (!isAlreadyRegistered) {
           console.log(`[BundledSounds] Registering new bundled sound: ${formattedTitle} (${soundId})`);
           dbManager.saveSound({
             id: soundId,
@@ -84,15 +82,15 @@ class BundledSoundsManager {
             is_builtin: 1,
             used_in: ['Namaz', 'Tasks']
           });
+        } catch (err) {
+          console.error(`Error loading bundled audio file ${file.name}:`, err);
         }
+      }
 
-        // Set as default azaan sound if not explicitly configured
-        const currentAzaanSound = dbManager.getSetting('azaan_sound_id');
-        if (!currentAzaanSound || currentAzaanSound === 'sound-azaan-makkah') {
-          dbManager.setSetting('azaan_sound_id', soundId);
-        }
-      } catch (err) {
-        console.error(`Error loading bundled audio file ${file.name}:`, err);
+      // Set as default azaan sound if not explicitly configured
+      const currentAzaanSound = dbManager.getSetting('azaan_sound_id');
+      if (!currentAzaanSound || currentAzaanSound === 'sound-azaan-makkah') {
+        dbManager.setSetting('azaan_sound_id', soundId);
       }
     });
   }

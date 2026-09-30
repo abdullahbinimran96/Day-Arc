@@ -65,9 +65,9 @@
       "artifactName": "Day-Arc-Setup.exe"
     },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
       "perMachine": false,
+      "differentialPackage": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Day Arc",
