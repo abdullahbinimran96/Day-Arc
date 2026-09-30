@@ -1,6 +1,14 @@
-; Custom NSIS Uninstaller Script for Day Arc
+; Custom NSIS Installer & Uninstaller Script for Day Arc
+
+!macro customInstall
+  DetailPrint "Ensuring previous Day Arc instances are closed before updating files..."
+  nsExec::Exec 'taskkill /F /IM "Day Arc.exe" /T'
+  nsExec::Exec 'taskkill /F /IM day-arc.exe /T'
+!macroend
+
 !macro customUnInstall
   DetailPrint "Terminating Day Arc background processes..."
+  nsExec::Exec 'taskkill /F /IM "Day Arc.exe" /T'
   nsExec::Exec 'taskkill /F /IM day-arc.exe /T'
   nsExec::Exec 'taskkill /F /IM electron.exe /FI "WINDOWTITLE eq Day Arc*"'
   
@@ -16,11 +24,5 @@
   Delete "$DESKTOP\Day Arc.lnk"
   Delete "$SMPROGRAMS\Day Arc.lnk"
   RMDir /r "$SMPROGRAMS\Day Arc"
-
-  DetailPrint "Wiping Day Arc user data and database..."
-  RMDir /r "$APPDATA\day-arc"
-  RMDir /r "$LOCALAPPDATA\day-arc"
-  RMDir /r "$LOCALAPPDATA\Programs\day-arc"
-  Delete "$INSTDIR\dayarc.db"
-  Delete "$INSTDIR\dayarc.db-journal"
 !macroend
+

@@ -27,6 +27,18 @@ class AutoStartManager {
 
   enable() {
     try {
+      const electron = require('electron');
+      const app = electron.app || (electron.remote && electron.remote.app);
+      if (app && app.isPackaged) {
+        app.setLoginItemSettings({
+          openAtLogin: true,
+          path: process.execPath,
+          args: ['--hidden']
+        });
+        console.log(`[AutoStart] Enabled Day Arc auto-start in Windows Login Items (Packaged: ${process.execPath}).`);
+        return;
+      }
+
       if (!fs.existsSync(this.startupFolder)) {
         fs.mkdirSync(this.startupFolder, { recursive: true });
       }
@@ -62,6 +74,12 @@ Set-ItemProperty -Path $RegPath -Name "Day Arc" -Value "wscript.exe \`"${this.vb
 
   disable() {
     try {
+      const electron = require('electron');
+      const app = electron.app || (electron.remote && electron.remote.app);
+      if (app && app.isPackaged) {
+        app.setLoginItemSettings({ openAtLogin: false });
+      }
+
       if (fs.existsSync(this.startupShortcutPath)) {
         fs.unlinkSync(this.startupShortcutPath);
       }

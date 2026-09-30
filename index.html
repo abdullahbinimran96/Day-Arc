@@ -766,6 +766,34 @@
               </button>
             </div>
 
+            <!-- Software Updates (Auto-Updater System) -->
+            <div class="panel-glass" style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; color: #4FD6C4; margin-bottom: 4px;">
+                  <span class="material-symbols-outlined" style="font-size: 20px;">system_update</span>
+                  <h3 class="font-fraunces" style="font-size: 18px; color: #EDEDF3;">Software Updates</h3>
+                </div>
+                <p class="panel-subtitle" id="updater-detail-text">Day Arc is running <span id="updater-current-version" class="font-mono" style="color: #E7B24C;">v1.0.0</span>. Checks automatically on application launch.</p>
+                <div id="updater-status-container" style="margin-top: 8px; font-size: 12px; color: #888B9E; display: flex; align-items: center; gap: 8px;">
+                  <span id="updater-status-badge" class="companion-dot" style="background: #4FD6C4;"></span>
+                  <span id="updater-status-message">Up to date</span>
+                </div>
+                <div id="updater-progress-bar-container" class="hidden" style="margin-top: 10px; width: 280px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                  <div id="updater-progress-bar" style="width: 0%; height: 100%; background: #4FD6C4; transition: width 0.2s ease;"></div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="btn-check-updates" class="btn-quick-focus" style="display: flex; align-items: center; gap: 6px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span>
+                  <span>Check for Updates</span>
+                </button>
+                <button id="btn-restart-update" class="btn-quick-focus hidden" style="background: #4FD6C4; color: #11121B; font-weight: 700; border: none; display: flex; align-items: center; gap: 6px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">restart_alt</span>
+                  <span>Restart & Update</span>
+                </button>
+              </div>
+            </div>
+
             <!-- Reset All Day Arc Data (Clean Reinstall / Complete Wipe) -->
             <div class="panel-glass" style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center; border-color: rgba(255, 180, 171, 0.3);">
               <div>
@@ -1128,6 +1156,26 @@
           <button type="submit" class="btn-primary-action" style="flex: 1.2; padding: 10px; background: #ffb4ab; color: #690005; font-weight: 700;">Verify & End Task</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal / Banner: Update Ready Notification -->
+  <div id="modal-update-ready" style="position: fixed; bottom: 24px; right: 24px; z-index: 100000; display: flex; flex-direction: column; gap: 8px;" class="hidden">
+    <div class="panel-glass" style="max-width: 380px; padding: 18px 20px; border: 1px solid rgba(79, 214, 196, 0.4); box-shadow: 0 16px 40px rgba(0,0,0,0.8); background: rgba(17, 18, 27, 0.95); border-radius: 12px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px; color: #4FD6C4;">
+          <span class="material-symbols-outlined" style="font-size: 22px;">system_update</span>
+          <span style="font-weight: 700; font-size: 14px; color: #EDEDF3;">Update Ready</span>
+        </div>
+        <button id="btn-update-banner-dismiss" class="icon-btn" style="width: 24px; height: 24px;"><span class="material-symbols-outlined" style="font-size: 16px;">close</span></button>
+      </div>
+      <p style="font-size: 12px; color: #888B9E; line-height: 1.4; margin-bottom: 14px;">
+        A new version of Day Arc (<span id="modal-update-version" class="font-mono" style="color: #E7B24C;"></span>) has been downloaded. Restart to apply the update seamlessly without losing any data.
+      </p>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" id="btn-update-banner-later" class="dur-btn" style="flex: 1; padding: 8px 12px; font-size: 12px;">Later</button>
+        <button type="button" id="btn-update-banner-restart" class="btn-primary-action" style="flex: 1.4; padding: 8px 12px; font-size: 12px; font-weight: 700;">Restart & Update</button>
+      </div>
     </div>
   </div>
 

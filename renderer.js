@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupSounds();
   setupPrivateTab();
   setupSettings();
+  setupAutoUpdater();
   setupFocusOverlay();
   startLiveClock();
 
@@ -3807,6 +3808,122 @@ document.addEventListener('DOMContentLoaded', async () => {
     const timeKey = `${todayStr}_${currentMins}`;
 
     if (lastTriggeredTaskKey === timeKey) return;
+  }
+
+  // ================= SOFTWARE UPDATES / AUTO-UPDATER =================
+  async function setupAutoUpdater() {
+    const versionEl = document.getElementById('updater-current-version');
+    const statusMsg = document.getElementById('updater-status-message');
+    const statusBadge = document.getElementById('updater-status-badge');
+    const progressBar = document.getElementById('updater-progress-bar');
+    const progressContainer = document.getElementById('updater-progress-bar-container');
+    const btnCheck = document.getElementById('btn-check-updates');
+    const btnRestart = document.getElementById('btn-restart-update');
+
+    // Banner elements
+    const banner = document.getElementById('modal-update-ready');
+    const bannerVer = document.getElementById('modal-update-version');
+    const btnBannerLater = document.getElementById('btn-update-banner-later');
+    const btnBannerRestart = document.getElementById('btn-update-banner-restart');
+    const btnBannerDismiss = document.getElementById('btn-update-banner-dismiss');
+
+    // Load current app version
+    if (window.dayarc && window.dayarc.getAppVersion) {
+      try {
+        const ver = await window.dayarc.getAppVersion();
+        if (versionEl && ver) {
+          versionEl.textContent = `v${ver}`;
+        }
+      } catch (e) {
+        console.warn('Error fetching app version:', e);
+      }
+    }
+
+    if (btnCheck && window.dayarc && window.dayarc.checkForUpdates) {
+      btnCheck.addEventListener('click', async () => {
+        btnCheck.disabled = true;
+        if (statusMsg) statusMsg.textContent = 'Checking for updates...';
+        if (statusBadge) statusBadge.style.background = '#E7B24C';
+        try {
+          await window.dayarc.checkForUpdates();
+        } catch (err) {
+          console.warn('Manual update check error:', err);
+        } finally {
+          setTimeout(() => {
+            if (btnCheck) btnCheck.disabled = false;
+          }, 3000);
+        }
+      });
+    }
+
+    const triggerRestart = () => {
+      if (window.dayarc && window.dayarc.quitAndInstallUpdate) {
+        window.dayarc.quitAndInstallUpdate();
+      }
+    };
+
+    if (btnRestart) btnRestart.addEventListener('click', triggerRestart);
+    if (btnBannerRestart) btnBannerRestart.addEventListener('click', triggerRestart);
+    if (btnBannerLater && banner) {
+      btnBannerLater.addEventListener('click', () => banner.classList.add('hidden'));
+    }
+    if (btnBannerDismiss && banner) {
+      btnBannerDismiss.addEventListener('click', () => banner.classList.add('hidden'));
+    }
+
+    if (window.dayarc && window.dayarc.onUpdaterStatus) {
+      window.dayarc.onUpdaterStatus((data) => {
+        console.log('[Renderer] Auto-updater status received:', data);
+        if (!data) return;
+
+        switch (data.status) {
+          case 'checking':
+            if (statusMsg) statusMsg.textContent = 'Checking for updates...';
+            if (statusBadge) statusBadge.style.background = '#E7B24C';
+            if (progressContainer) progressContainer.classList.add('hidden');
+            break;
+
+          case 'available':
+            if (statusMsg) statusMsg.textContent = `Update v${data.version} found. Downloading...`;
+            if (statusBadge) statusBadge.style.background = '#4FD6C4';
+            if (progressContainer) progressContainer.classList.remove('hidden');
+            if (progressBar) progressBar.style.width = '10%';
+            break;
+
+          case 'not-available':
+            if (statusMsg) statusMsg.textContent = `Day Arc is up to date (v${data.version || '1.0.0'})`;
+            if (statusBadge) statusBadge.style.background = '#4FD6C4';
+            if (progressContainer) progressContainer.classList.add('hidden');
+            break;
+
+          case 'downloading':
+            if (statusMsg) statusMsg.textContent = `Downloading update: ${data.percent}%`;
+            if (statusBadge) statusBadge.style.background = '#4FD6C4';
+            if (progressContainer) progressContainer.classList.remove('hidden');
+            if (progressBar) progressBar.style.width = `${data.percent}%`;
+            break;
+
+          case 'downloaded':
+            if (statusMsg) statusMsg.textContent = `Update v${data.version} ready to install.`;
+            if (statusBadge) statusBadge.style.background = '#4FD6C4';
+            if (progressContainer) progressContainer.classList.add('hidden');
+            if (btnRestart) btnRestart.classList.remove('hidden');
+            if (banner) {
+              if (bannerVer) bannerVer.textContent = `v${data.version}`;
+              banner.classList.remove('hidden');
+            }
+            break;
+
+          case 'error':
+            if (data.isManual) {
+              if (statusMsg) statusMsg.textContent = `Check failed: ${data.message || 'Network error'}`;
+              if (statusBadge) statusBadge.style.background = '#FFB4AB';
+            }
+            if (progressContainer) progressContainer.classList.add('hidden');
+            break;
+        }
+      });
+    }
   }
 
   // Handle Author Branding Link Click (Opens in default OS browser)

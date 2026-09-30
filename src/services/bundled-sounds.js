@@ -6,7 +6,18 @@ const path = require('path');
 
 class BundledSoundsManager {
   constructor() {
-    this.resourcesDir = path.join(__dirname, '..', '..', 'resources');
+    let resDir = path.join(__dirname, '..', '..', 'resources');
+    try {
+      const electron = require('electron');
+      const app = electron.app || (electron.remote && electron.remote.app);
+      if (app && app.isPackaged) {
+        const unpacked = path.join(process.resourcesPath, 'app.asar.unpacked', 'resources');
+        const rootRes = path.join(process.resourcesPath, 'resources');
+        if (fs.existsSync(unpacked)) resDir = unpacked;
+        else if (fs.existsSync(rootRes)) resDir = rootRes;
+      }
+    } catch (e) {}
+    this.resourcesDir = resDir;
   }
 
   scanAndRegister(dbManager) {

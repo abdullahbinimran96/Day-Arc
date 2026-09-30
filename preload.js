@@ -65,5 +65,10 @@ contextBridge.exposeInMainWorld('dayarc', {
   updateTaskbarCountdown: (data) => ipcRenderer.invoke('update-taskbar-countdown', data),
   onUpdateTaskbarWidget: (callback) => ipcRenderer.on('update-taskbar-widget-data', (event, data) => callback(data)),
   installBrowserExtensions: () => ipcRenderer.invoke('install-browser-extensions'),
-  resetAllData: () => ipcRenderer.invoke('reset-all-data')
+  resetAllData: () => ipcRenderer.invoke('reset-all-data'),
+
+  // Auto-Updater
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  quitAndInstallUpdate: () => ipcRenderer.invoke('quit-and-install-update'),
+  onUpdaterStatus: (callback) => ipcRenderer.on('updater-status', (event, data) => callback(data))
 });

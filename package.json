@@ -5,7 +5,11 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron ."
+    "dev": "electron .",
+    "pack": "electron-builder --win --dir",
+    "build": "electron-builder --win --x64",
+    "dist": "electron-builder --win --x64",
+    "release": "electron-builder --win --x64 --publish always"
   },
   "keywords": [
     "time-management",
@@ -14,30 +18,72 @@
     "productivity",
     "electron"
   ],
-  "author": "Day Arc",
+  "author": "Abdullah Bin Imran",
   "license": "ISC",
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "sql.js": "^1.12.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "electron": "^34.2.0"
+    "electron": "^34.2.0",
+    "electron-builder": "^26.15.3"
   },
   "build": {
     "appId": "com.dayarc.app",
     "productName": "Day Arc",
+    "copyright": "Copyright © 2026 Day Arc. All rights reserved.",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!tests${/*}",
+      "!scratch${/*}",
+      "!*.log",
+      "!dayarc.db*",
+      "!.git${/*}",
+      "!dist${/*}"
+    ],
+    "asarUnpack": [
+      "chrome-extension/**/*",
+      "resources/**/*",
+      "node_modules/sql.js/dist/sql-wasm.wasm"
+    ],
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "build/icon.ico",
+      "executableName": "Day Arc",
+      "artifactName": "Day-Arc-Setup.exe"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
+      "shortcutName": "Day Arc",
+      "artifactName": "Day-Arc-Setup.exe",
+      "uninstallDisplayName": "Day Arc",
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
       "include": "build/installer.nsh"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "abdullahbinimran96",
+        "repo": "Day-Arc"
+      }
+    ]
   }
 }

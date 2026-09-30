@@ -4,7 +4,18 @@ const { execSync } = require('child_process');
 
 class BrowserExtensionInstaller {
   constructor() {
-    this.extensionPath = path.resolve(__dirname, '..', '..', 'chrome-extension');
+    let extPath = path.resolve(__dirname, '..', '..', 'chrome-extension');
+    try {
+      const electron = require('electron');
+      const app = electron.app || (electron.remote && electron.remote.app);
+      if (app && app.isPackaged) {
+        const unpacked = path.join(process.resourcesPath, 'app.asar.unpacked', 'chrome-extension');
+        const rootExt = path.join(process.resourcesPath, 'chrome-extension');
+        if (fs.existsSync(unpacked)) extPath = unpacked;
+        else if (fs.existsSync(rootExt)) extPath = rootExt;
+      }
+    } catch (e) {}
+    this.extensionPath = extPath;
     this.extensionId = 'kpmefjhflkbbffepocgfcjnbkocmpeeo';
     this.extensionVersion = '1.0.0';
   }

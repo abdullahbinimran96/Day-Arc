@@ -6,6 +6,12 @@ const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
 
+// Set Application Name and Windows User Model ID for clean Taskbar/Start Menu integration
+app.setName('Day Arc');
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.dayarc.app');
+}
+
 // Enable audio autoplay without user interaction for reliable Azaan and task sounds
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
@@ -18,6 +24,7 @@ const bundledSounds = require('./src/services/bundled-sounds');
 const autoStartManager = require('./src/services/autostart');
 const browserInstaller = require('./src/services/browser-installer');
 const uninstaller = require('./src/services/uninstaller');
+const UpdateService = require('./src/services/updater');
 
 // CLI handlers for uninstallation and full data reset
 if (process.argv.includes('--uninstall') || process.argv.includes('--cleanup')) {
@@ -34,6 +41,7 @@ let activeSessionWatchdog = null;
 let currentActiveSession = null;
 let taskbarWidgetWindow = null;
 let widgetHideTimeout = null;
+let updateService = null;
 
 process.on('uncaughtException', (err) => {
   console.error('[Main Process Exception]:', err.message);
@@ -78,7 +86,9 @@ async function createWindow() {
   const autoStartEnabled = dbManager.getSetting('auto_start') !== '0';
   autoStartManager.sync(autoStartEnabled);
 
-  const iconPath = path.join(__dirname, 'assets', 'icon.png');
+  const icoPath = path.join(__dirname, 'build', 'icon.ico');
+  const pngPath = path.join(__dirname, 'assets', 'icon.png');
+  const iconPath = (process.platform === 'win32' && fs.existsSync(icoPath)) ? icoPath : pngPath;
   const appIcon = fs.existsSync(iconPath) ? nativeImage.createFromPath(iconPath) : null;
 
   mainWindow = new BrowserWindow({
@@ -145,6 +155,14 @@ async function createWindow() {
   createTaskbarWidgetWindow();
   setupExtensionServer();
   startBackgroundCountdownService();
+
+  // Initialize Auto-Updater Service
+  try {
+    updateService = new UpdateService(mainWindow);
+    updateService.startAutomaticCheck();
+  } catch (e) {
+    console.warn('[Auto-Updater Init Warning]:', e.message);
+  }
 
   // Listen for system sleep and wake events to guarantee scheduler continuous execution
   try {
@@ -1239,7 +1257,7 @@ ipcMain.handle('open-external-url', async (event, url) => {
   return true;
 });
 
-ipcMain.handle('get-app-version', () => '1.0.0');
+ipcMain.handle('get-app-version', () => app.getVersion());
 
 ipcMain.handle('reset-all-data', async () => {
   console.log('[RESET] Full Day Arc user data wipe requested...');
