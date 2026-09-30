@@ -97,11 +97,30 @@
       font-family: 'JetBrains Mono', monospace;
       margin-top: 6px;
     }
+    .btn-open-session {
+      background: rgba(79, 214, 196, 0.15);
+      border: 1px solid rgba(79, 214, 196, 0.4);
+      color: #4FD6C4;
+      padding: 10px 24px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-open-session:hover {
+      background: rgba(79, 214, 196, 0.25);
+      border-color: #4FD6C4;
+      box-shadow: 0 0 16px rgba(79, 214, 196, 0.35);
+    }
     .btn-end-session {
       background: rgba(27, 29, 43, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.12);
       color: #888B9E;
-      padding: 10px 28px;
+      padding: 10px 24px;
       border-radius: 9999px;
       font-size: 12px;
       font-weight: 600;
@@ -157,7 +176,10 @@
     </div>
 
     <!-- Actions / Strict indicator -->
-    <div id="actions-box">
+    <div id="actions-box" style="display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap;">
+      <button id="btn-overlay-reopen" class="btn-open-session" style="display: none;">
+        <span class="material-symbols-outlined" style="font-size: 16px;">launch</span> Open Task
+      </button>
       <button id="btn-overlay-dismiss" class="btn-end-session">
         <span class="material-symbols-outlined" style="font-size: 16px;">close</span> End Task
       </button>
@@ -239,6 +261,14 @@
         dismissBtn.style.display = 'inline-flex';
         dismissBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">close</span> End Task';
       }
+      const reopenBtn = document.getElementById('btn-overlay-reopen');
+      if (reopenBtn) {
+        if (session.isUrlTask || (session.allowedUrls && session.allowedUrls.length > 0)) {
+          reopenBtn.style.display = 'inline-flex';
+        } else {
+          reopenBtn.style.display = 'none';
+        }
+      }
       if (strictInd) strictInd.style.display = 'none';
 
       // Play Sound
@@ -294,6 +324,20 @@
 
     if (btnCancel) btnCancel.addEventListener('click', closeOverlayPwdModal);
     if (btnCancelX) btnCancelX.addEventListener('click', closeOverlayPwdModal);
+
+    const reopenBtn = document.getElementById('btn-overlay-reopen');
+    if (reopenBtn) {
+      reopenBtn.addEventListener('click', async () => {
+        if (!window.dayarc) return;
+        try {
+          if (window.dayarc.reopenTaskBrowser) {
+            await window.dayarc.reopenTaskBrowser();
+          }
+        } catch (e) {
+          console.error('[Overlay] Error reopening task browser:', e);
+        }
+      });
+    }
 
     if (dismissBtn) {
       dismissBtn.addEventListener('click', async () => {

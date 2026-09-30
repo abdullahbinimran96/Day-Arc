@@ -945,6 +945,9 @@ function startFocusSessionInternal(sessionData) {
     const { x, y, width, height } = primaryDisplay.workArea;
     blurOverlayWindow.setBounds({ x, y, width, height });
     if (isUrl) {
+      if (process.platform === 'win32') {
+        exec('powershell -NoProfile -Command "(New-Object -ComObject Shell.Application).MinimizeAll()"', () => {});
+      }
       blurOverlayWindow.setAlwaysOnTop(false);
       blurOverlayWindow.showInactive();
     } else {
@@ -964,7 +967,9 @@ function startFocusSessionInternal(sessionData) {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.minimize();
     }
-    executeUrlTask(sessionData);
+    setTimeout(() => {
+      executeUrlTask(sessionData);
+    }, 150);
   } else {
     extensionServer.startSession(sessionData);
   }
@@ -1112,6 +1117,15 @@ ipcMain.handle('launch-browser-url', async (event, browserId, profileId, urls) =
 
 ipcMain.handle('start-focus-session', async (event, sessionData) => {
   return startFocusSessionInternal(sessionData);
+});
+
+ipcMain.handle('reopen-task-browser', async () => {
+  if (currentActiveSession && (currentActiveSession.isUrlTask || (currentActiveSession.allowedUrls && currentActiveSession.allowedUrls.length > 0))) {
+    console.log('[SESSION] User clicked Open Task: Reopening / focusing browser window for active session.');
+    executeUrlTask(currentActiveSession);
+    return true;
+  }
+  return false;
 });
 
 function stopFocusSessionInternal() {

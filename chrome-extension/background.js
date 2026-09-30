@@ -84,6 +84,14 @@ function connectToDayArc() {
   }
 }
 
+// Internal message listener for content script queries
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request && request.type === 'GET_ACTIVE_SESSION') {
+    sendResponse({ activeSession });
+    return false;
+  }
+});
+
 // --- 2. Session Initialization & Normalization ---
 function parseAllowedUrls(urls = []) {
   const allowedUrls = [];
@@ -435,6 +443,31 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     enforceTab(tab, changeInfo);
   }
 });
+
+// 2B. Single Page Application (SPA) navigation listener (YouTube suggested video clicks & history changes)
+if (chrome.webNavigation && chrome.webNavigation.onHistoryStateUpdated) {
+  chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+    if (details && details.frameId === 0 && details.tabId && details.url) {
+      chrome.tabs.get(details.tabId, (tab) => {
+        if (!chrome.runtime.lastError && tab) {
+          enforceTab(tab, { url: details.url });
+        }
+      });
+    }
+  });
+}
+
+if (chrome.webNavigation && chrome.webNavigation.onBeforeNavigate) {
+  chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+    if (details && details.frameId === 0 && details.tabId && details.url) {
+      chrome.tabs.get(details.tabId, (tab) => {
+        if (!chrome.runtime.lastError && tab) {
+          enforceTab(tab, { url: details.url });
+        }
+      });
+    }
+  });
+}
 
 // 3. Tab switch / activation listener
 chrome.tabs.onActivated.addListener((activeInfo) => {

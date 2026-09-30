@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld('dayarc', {
   // Focus Session & Extension Control
   startFocusSession: (sessionData) => ipcRenderer.invoke('start-focus-session', sessionData),
   stopFocusSession: () => ipcRenderer.invoke('stop-focus-session'),
+  reopenTaskBrowser: () => ipcRenderer.invoke('reopen-task-browser'),
   recordFocusSession: (session) => ipcRenderer.invoke('record-focus-session', session),
   getStatsToday: () => ipcRenderer.invoke('get-stats-today'),
 
