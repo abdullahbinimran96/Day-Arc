@@ -1,0 +1,43 @@
+{
+  "name": "day-arc",
+  "version": "1.0.0",
+  "description": "Day Arc - Elegant Time Management & Deep Focus Tool",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron ."
+  },
+  "keywords": [
+    "time-management",
+    "focus",
+    "namaz",
+    "productivity",
+    "electron"
+  ],
+  "author": "Day Arc",
+  "license": "ISC",
+  "dependencies": {
+    "sql.js": "^1.12.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^34.2.0"
+  },
+  "build": {
+    "appId": "com.dayarc.app",
+    "productName": "Day Arc",
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "include": "build/installer.nsh"
+    }
+  }
+}

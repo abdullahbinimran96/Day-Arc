@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Day Arc Focus</title>
+  <link rel="stylesheet" href="popup.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=JetBrains+Mono:wght@500&family=Manrope:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="header">
+      <div class="logo-box">
+        <span class="logo-dot"></span>
+        <span class="app-title">Day Arc</span>
+      </div>
+      <div id="conn-badge" class="badge disconnected">Offline</div>
+    </header>
+
+    <main class="content">
+      <div id="session-card" class="card empty">
+        <p class="status-label">CURRENT STATUS</p>
+        <h3 id="session-title" class="session-title">No Active Session</h3>
+        <p id="session-desc" class="session-desc">Start a task in the Day Arc desktop app to enforce focus URLs.</p>
+        
+        <div id="allowed-list" class="allowed-list" style="display: none;">
+          <p class="section-tag">ALLOWED WEBSITES</p>
+          <ul id="urls-container"></ul>
+        </div>
+      </div>
+
+      <div class="security-info">
+        <span class="shield-icon">🛡️</span>
+        <span id="security-status">Private Tab & Adult Shield: Active</span>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>Day Arc Focus Engine v1.0</p>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

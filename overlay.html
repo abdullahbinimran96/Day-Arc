@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Day Arc — Fullscreen Desktop Focus Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: rgba(17, 18, 27, 0.88);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      color: #EDEDF3;
+      font-family: 'Manrope', sans-serif;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      max-width: 680px;
+      text-align: center;
+      padding: 32px;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      background: rgba(231, 178, 76, 0.15);
+      border: 1px solid rgba(231, 178, 76, 0.35);
+      color: #E7B24C;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .task-title {
+      font-family: 'Fraunces', serif;
+      font-size: 38px;
+      font-weight: 600;
+      color: #EDEDF3;
+      line-height: 1.25;
+      margin-top: 10px;
+    }
+    .task-subtitle {
+      font-size: 13px;
+      color: #888B9E;
+      margin-top: 6px;
+    }
+    .timer-ring-box {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px 0;
+    }
+    .timer-ring-box svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .countdown-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 46px;
+      font-weight: 700;
+      color: #4FD6C4;
+      text-shadow: 0 0 20px rgba(79, 214, 196, 0.6);
+      line-height: 1;
+    }
+    .remaining-label {
+      font-size: 10px;
+      color: #4FD6C4;
+      letter-spacing: 0.2em;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 6px;
+    }
+    .btn-end-session {
+      background: rgba(27, 29, 43, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #888B9E;
+      padding: 10px 28px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-end-session:hover {
+      color: #ffb4ab;
+      border-color: rgba(255, 180, 171, 0.4);
+      background: rgba(255, 180, 171, 0.08);
+    }
+    .strict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #ffb4ab;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay-container">
+    <div>
+      <div id="overlay-badge" class="status-badge">
+        <span class="material-symbols-outlined" style="font-size: 14px;">visibility_off</span>
+        <span>FOCUS MODE ACTIVE</span>
+      </div>
+      <h1 id="overlay-task-title" class="task-title">Deep Focus Session</h1>
+      <p id="overlay-desc" class="task-subtitle">Desktop screen is blurred to maintain deep uninterrupted concentration.</p>
+    </div>
+
+    <!-- Circular Progress Timer -->
+    <div class="timer-ring-box">
+      <svg viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="54" fill="none" stroke="#1B1D2B" stroke-width="3.5"></circle>
+        <circle id="progress-ring-circle" cx="60" cy="60" r="54" fill="none" stroke="#4FD6C4" stroke-width="4" stroke-dasharray="339.29" stroke-dashoffset="0" stroke-linecap="round" style="transition: stroke-dashoffset 0.3s;"></circle>
+      </svg>
+
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10;">
+        <div id="countdown-val" class="countdown-text">25:00</div>
+        <div class="remaining-label">REMAINING</div>
+      </div>
+    </div>
+
+    <!-- Actions / Strict indicator -->
+    <div id="actions-box">
+      <button id="btn-overlay-dismiss" class="btn-end-session">
+        <span class="material-symbols-outlined" style="font-size: 16px;">close</span> End Session Early
+      </button>
+      <div id="strict-indicator" class="strict-badge" style="display: none;">
+        <span class="material-symbols-outlined" style="font-size: 16px;">shield</span> STRICT ENFORCEMENT ACTIVE (Early Exit Disabled)
+      </div>
+    </div>
+  </div>
+
+  <script src="src/services/audio-synth.js"></script>
+  <script>
+    let currentSession = null;
+    let timerInterval = null;
+
+    if (window.dayarc) {
+      window.dayarc.onStartOverlay((session) => {
+        currentSession = session;
+        renderSession(session);
+      });
+
+      window.dayarc.onStopOverlay(() => {
+        if (timerInterval) clearInterval(timerInterval);
+        if (window.soundEngine) window.soundEngine.stopCurrent();
+      });
+    }
+
+    // Direct IPC listener via ipcRenderer fallback if available
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'START_OVERLAY') {
+        currentSession = event.data.session;
+        renderSession(currentSession);
+      }
+    });
+
+    function renderSession(session) {
+      const titleEl = document.getElementById('overlay-task-title');
+      const descEl = document.getElementById('overlay-desc');
+      const dismissBtn = document.getElementById('btn-overlay-dismiss');
+      const strictInd = document.getElementById('strict-indicator');
+      const ring = document.getElementById('progress-ring-circle');
+      const countdown = document.getElementById('countdown-val');
+
+      if (titleEl) titleEl.textContent = session.taskName || session.name || 'Focus Session';
+      if (descEl) {
+        descEl.textContent = session.isUrlTask 
+          ? 'Allowed pages are open in your browser. Navigating outside or switching programs is restricted.'
+          : 'Desktop screen is blurred to maintain deep uninterrupted concentration.';
+      }
+
+      if (session.isStrict) {
+        if (dismissBtn) dismissBtn.style.display = 'none';
+        if (strictInd) strictInd.style.display = 'inline-flex';
+      } else {
+        if (dismissBtn) dismissBtn.style.display = 'inline-flex';
+        if (strictInd) strictInd.style.display = 'none';
+      }
+
+      // Play Sound
+      if (session.sound && window.soundEngine) {
+        console.log('[Overlay] Playing session sound:', session.sound.name || session.sound.id);
+        try {
+          window.soundEngine.play(session.sound, null, (soundId) => {
+            console.log('[Overlay] Sound playback completed:', soundId);
+          });
+        } catch (err) {
+          console.error('[Overlay] Error playing sound:', err);
+        }
+      }
+
+      if (timerInterval) clearInterval(timerInterval);
+
+      const endTime = session.endTime || (Date.now() + (session.duration_mins || 25) * 60000);
+      const totalDurationMs = (session.duration_mins || 25) * 60000;
+
+      timerInterval = setInterval(() => {
+        const remainingMs = endTime - Date.now();
+        if (remainingMs <= 0) {
+          clearInterval(timerInterval);
+          if (window.dayarc) window.dayarc.stopFocusSession();
+          return;
+        }
+
+        const progressFraction = Math.max(0, Math.min(1, (totalDurationMs - remainingMs) / totalDurationMs));
+        if (ring) {
+          ring.style.strokeDashoffset = 339.29 * progressFraction;
+        }
+
+        const totalSecs = Math.ceil(remainingMs / 1000);
+        const mm = String(Math.floor(totalSecs / 60)).padStart(2, '0');
+        const ss = String(totalSecs % 60).padStart(2, '0');
+        if (countdown) countdown.textContent = `${mm}:${ss}`;
+      }, 250);
+    }
+
+    document.getElementById('btn-overlay-dismiss').addEventListener('click', () => {
+      if (window.dayarc) {
+        window.dayarc.stopFocusSession();
+      }
+    });
+  </script>
+</body>
+</html>

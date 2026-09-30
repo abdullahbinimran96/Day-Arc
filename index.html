@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day Arc</title>
+  <!-- Google Fonts: Fraunces (Headings), Manrope (Body), JetBrains Mono (Numeric) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- ================= 1. FIXED 76PX LEFT SIDEBAR RAIL ================= -->
+  <nav id="sidebar-rail">
+    <!-- Brand Logo -->
+    <div id="brand-logo" title="Day Arc">
+      <img src="assets/icon.png" alt="Day Arc" style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover;">
+    </div>
+
+    <!-- Navigation Tabs (Vertical Column) -->
+    <div class="nav-tabs-container">
+      <!-- 0: Dashboard -->
+      <div class="nav-item" data-panel="dashboard">
+        <button class="nav-btn active" aria-label="Dashboard">
+          <div class="active-indicator"></div>
+          <span class="material-symbols-outlined" style="font-size: 24px;">dashboard</span>
+        </button>
+        <div class="nav-tooltip">Dashboard</div>
+      </div>
+
+      <!-- 1: Namaz -->
+      <div class="nav-item" data-panel="namaz">
+        <button class="nav-btn" aria-label="Namaz">
+          <div class="active-indicator hidden"></div>
+          <span class="material-symbols-outlined" style="font-size: 24px;">schedule</span>
+        </button>
+        <div class="nav-tooltip">Namaz</div>
+      </div>
+
+      <!-- 2: Daily & Time Management -->
+      <div class="nav-item" data-panel="tasks">
+        <button class="nav-btn" aria-label="Daily & Time Management">
+          <div class="active-indicator hidden"></div>
+          <span class="material-symbols-outlined" style="font-size: 24px;">timer</span>
+        </button>
+        <div class="nav-tooltip">Daily & Time Management</div>
+      </div>
+
+      <!-- 3: Bookmarks -->
+      <div class="nav-item" data-panel="bookmarks">
+        <button class="nav-btn" aria-label="Bookmarks">
+          <div class="active-indicator hidden"></div>
+          <span class="material-symbols-outlined" style="font-size: 24px;">bookmarks</span>
+        </button>
+        <div class="nav-tooltip">Bookmarks</div>
+      </div>
+
+      <!-- 4: Private Tab -->
+      <div class="nav-item" data-panel="private-tab">
+        <button class="nav-btn" aria-label="Private Tab">
+          <div class="active-indicator hidden"></div>
+          <span class="material-symbols-outlined" style="font-size: 24px;">lock</span>
+        </button>
+        <div class="nav-tooltip">Private Tab</div>
+      </div>
+
+      <!-- 5: Sounds Library -->
+      <div class="nav-item" data-panel="sounds">
+        <button class="nav-btn" aria-label="Sounds Library">
+          <div class="active-indicator hidden"></div>
+          <span class="material-symbols-outlined" style="font-size: 24px;">library_music</span>
+        </button>
+        <div class="nav-tooltip">Sounds Library</div>
+      </div>
+    </div>
+
+    <!-- Bottom Settings Tab -->
+    <div class="sidebar-bottom">
+      <div class="nav-item" data-panel="settings">
+        <button class="nav-btn" aria-label="Settings">
+          <div class="active-indicator hidden"></div>
+          <span class="material-symbols-outlined" style="font-size: 24px;">settings</span>
+        </button>
+        <div class="nav-tooltip">Settings</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================= 2. MAIN APPLICATION CONTENT AREA ================= -->
+  <div class="main-wrapper">
+    <!-- TopAppBar -->
+    <header class="top-bar">
+      <div class="top-left" style="display: flex; align-items: center; gap: 10px;">
+        <img src="assets/icon.png" alt="Day Arc" style="width: 26px; height: 26px; border-radius: 6px; object-fit: cover;">
+        <h1 class="app-title-text">Day Arc</h1>
+        <div id="extension-status-chip" class="companion-badge">
+          <span class="pulse-dot"></span>
+          <span>Companion Active</span>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <!-- Live Clock -->
+        <div id="top-live-clock" class="top-clock-box">--:--:--</div>
+
+        <!-- Quick Focus Button -->
+        <button id="btn-quick-focus" class="btn-quick-focus">
+          <span class="material-symbols-outlined" style="font-size: 16px;">play_arrow</span>
+          Quick Focus
+        </button>
+
+        <!-- Notifications -->
+        <button id="btn-notifications" class="icon-btn" title="Notifications">
+          <span class="material-symbols-outlined" style="font-size: 20px;">notifications</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Panels Container (Only 1 visible at a time) -->
+    <main id="panels-container">
+      
+      <!-- ================= PANEL 0: DASHBOARD ================= -->
+      <section id="panel-dashboard" class="panel-view">
+        <!-- Centered Hero Clock Panel (Round 12) -->
+        <div class="panel-glass hero-clock-panel">
+          <!-- Top Row: Live Phase Status & Location Pills -->
+          <div class="hero-clock-top-bar">
+            <div class="hero-status-pill">
+              <span class="clock-live-indicator"></span>
+              <span id="dash-phase-label">DEEP FOCUS PHASE</span>
+            </div>
+            <div class="hero-location-pill">
+              <span class="material-symbols-outlined" style="font-size: 13px; color: #4FD6C4;">public</span>
+              <span id="dash-location-badge">Lahore, Pakistan (GMT+5)</span>
+            </div>
+          </div>
+
+          <!-- Centered Big Clock Display -->
+          <div class="hero-clock-center">
+            <div class="hero-clock-digits-row">
+              <span id="dash-clock-hours" class="hero-clock-digit">06</span>
+              <span class="hero-clock-colon">:</span>
+              <span id="dash-clock-minutes" class="hero-clock-digit">23</span>
+              <span class="hero-clock-colon hero-clock-colon-sec">:</span>
+              <span id="dash-clock-seconds" class="hero-clock-sec-digit">42</span>
+              <span id="dash-clock-ampm" class="hero-clock-ampm-pill">AM</span>
+            </div>
+            <div class="hero-clock-date-row">
+              <span id="dash-live-date" class="hero-clock-date-text">Wednesday, August 19</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle Row: Up Next Card + Next Prayer Card -->
+        <div class="dash-middle-grid">
+          <!-- Up Next Card -->
+          <div class="upnext-card">
+            <div class="upnext-tag">Up Next</div>
+            <h2 id="upnext-title" class="upnext-title">No Upcoming Tasks</h2>
+            <div id="upnext-countdown" class="upnext-countdown-text">--:--</div>
+            <button id="btn-start-upnext" class="btn-primary-action">
+              <span class="material-symbols-outlined" style="font-size: 20px; font-variation-settings: 'FILL' 1;">add</span>
+              Add Task
+            </button>
+            <div id="upnext-blur-desc" class="upnext-helper-text">
+              <span class="material-symbols-outlined" style="font-size: 16px;">event_available</span>
+              No scheduled focus sessions
+            </div>
+          </div>
+
+          <!-- Next Prayer Card -->
+          <div class="prayer-quick-card">
+            <div>
+              <div class="prayer-quick-top">
+                <span class="section-label-tag">Next Prayer</span>
+                <span class="badge-amber">MANUAL</span>
+              </div>
+              <h3 id="dash-next-prayer-name" class="prayer-quick-name">No Prayer Scheduled</h3>
+              <div id="dash-next-prayer-time" class="prayer-quick-time">--:--</div>
+              <div id="dash-next-prayer-countdown" class="prayer-quick-countdown">Configure prayer times in Namaz tab</div>
+            </div>
+
+            <div class="prayer-quick-bottom">
+              <span>Auto-Blur Duration:</span>
+              <span class="font-mono" style="color: #EDEDF3; background: #11121B; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);">-- min</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Stats Row -->
+        <div class="stats-grid-row">
+          <!-- Stat 1: Tasks Completed -->
+          <div class="stat-pill-card">
+            <div class="stat-icon-box teal">
+              <span class="material-symbols-outlined" style="font-size: 22px;">check_circle</span>
+            </div>
+            <div>
+              <div id="stat-completed-tasks" class="stat-value">0 / 0</div>
+              <div class="stat-label">Tasks Completed</div>
+            </div>
+          </div>
+
+          <!-- Stat 2: Streak -->
+          <div class="stat-pill-card">
+            <div class="stat-icon-box amber">
+              <span class="material-symbols-outlined" style="font-size: 22px;">local_fire_department</span>
+            </div>
+            <div>
+              <div id="stat-streak-days" class="stat-value">0 Days</div>
+              <div class="stat-label">Current Streak</div>
+            </div>
+          </div>
+
+          <!-- Stat 3: Total Focus Time -->
+          <div class="stat-pill-card">
+            <div class="stat-icon-box teal">
+              <span class="material-symbols-outlined" style="font-size: 22px;">timer</span>
+            </div>
+            <div>
+              <div id="stat-focus-time" class="stat-value">0h 0m</div>
+              <div class="stat-label">Deep Focus Today</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PANEL 1: NAMAZ ================= -->
+      <section id="panel-namaz" class="panel-view hidden">
+        <div class="namaz-max-container">
+          <!-- Header -->
+          <div class="panel-header-block">
+            <div>
+              <h2 class="panel-title-lg">Namaz</h2>
+              <div id="namaz-city-label" class="arc-phase-tag" style="margin-top: 4px;">KARACHI, PAKISTAN (GMT+5)</div>
+            </div>
+            <div class="badge-amber" style="font-size: 11px;">
+              Mode: <strong>Manual Prayer Schedule</strong>
+            </div>
+          </div>
+
+          <!-- Prayer List Container -->
+          <div class="panel-glass">
+            <div id="namaz-prayers-container" class="prayer-list-box">
+              <!-- Dynamic 5 prayer rows inserted via renderer.js -->
+            </div>
+
+            <!-- Shared Azaan Sound Card -->
+            <div class="azaan-sound-card">
+              <div class="sound-card-left">
+                <div class="sound-icon-circle">
+                  <span class="material-symbols-outlined" style="font-size: 22px;">graphic_eq</span>
+                </div>
+                <div>
+                  <h4 class="azaan-title-text">Azaan Sound</h4>
+                  <p id="namaz-active-sound-name" class="azaan-name-text">Azaan (Makkah)</p>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <button id="btn-preview-azaan" class="dur-btn active" style="padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">play_arrow</span> Preview
+                </button>
+                <button id="btn-change-azaan-sound" class="btn-change-sound">
+                  Change <span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PANEL 2: DAILY & TIME MANAGEMENT ================= -->
+      <section id="panel-tasks" class="panel-view hidden">
+        <!-- Header Controls -->
+        <div class="panel-header-block">
+          <div>
+            <h2 class="panel-title-lg">Daily & Time Management</h2>
+            <p class="panel-subtitle">Schedule focus sessions and strict URL tasks with interactive week tiles.</p>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <!-- 2-Way Switcher: Day / Week -->
+            <div style="display: flex; background: #1B1D2B; padding: 3px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
+              <button id="btn-view-day" class="dur-btn active" style="padding: 6px 14px; font-weight: 700;">Day</button>
+              <button id="btn-view-week" class="dur-btn" style="padding: 6px 14px;">Week</button>
+            </div>
+
+            <!-- Segmented Date Search Input: DD / MM / YYYY -->
+            <div id="search-segmented-wrapper" class="segmented-date-wrapper" style="display: flex; align-items: center; background: #11121B; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 2px 8px; gap: 4px; height: 34px;">
+              <span class="material-symbols-outlined" style="font-size: 15px; color: #888B9E;">calendar_today</span>
+              <input id="search-date-day" type="text" maxlength="2" placeholder="DD" class="seg-input font-mono" style="width: 24px; background: transparent; border: none; font-size: 11px; color: #EDEDF3; text-align: center; outline: none;">
+              <span style="color: rgba(255,255,255,0.2); font-size: 11px;">/</span>
+              <input id="search-date-month" type="text" maxlength="2" placeholder="MM" class="seg-input font-mono" style="width: 24px; background: transparent; border: none; font-size: 11px; color: #EDEDF3; text-align: center; outline: none;">
+              <span style="color: rgba(255,255,255,0.2); font-size: 11px;">/</span>
+              <input id="search-date-year" type="text" maxlength="4" placeholder="YYYY" class="seg-input font-mono" style="width: 38px; background: transparent; border: none; font-size: 11px; color: #EDEDF3; text-align: center; outline: none;">
+              <button id="btn-open-search-picker" type="button" class="icon-btn" title="Open Custom Calendar" style="width: 24px; height: 24px; margin-left: 2px;">
+                <span class="material-symbols-outlined" style="font-size: 15px; color: #4FD6C4;">edit_calendar</span>
+              </button>
+            </div>
+
+            <!-- Add Task Button -->
+            <button id="btn-open-add-task" class="btn-primary-action" style="margin-bottom: 0; padding: 8px 16px; font-size: 12px;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Add Task
+            </button>
+          </div>
+        </div>
+
+        <div class="tasks-workspace-layout">
+          <!-- Main Content Area with 2 Views: Day and Week -->
+          <div class="tasks-main-content">
+            
+            <!-- View 1: Day View -->
+            <div id="tasks-day-view">
+              <div class="panel-glass">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <div style="font-size: 11px; font-weight: 700; color: #888B9E; text-transform: uppercase; letter-spacing: 0.1em;">Today's Schedule</div>
+                  <div id="day-view-date-label" class="font-mono" style="font-size: 12px; color: #4FD6C4;">--</div>
+                </div>
+                <div id="today-tasks-list" style="display: flex; flex-direction: column; gap: 12px;">
+                  <!-- Dynamic task cards inserted via JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- View 2: Interactive Week View with Clickable Time-slot Tiles -->
+            <div id="tasks-week-view" class="hidden">
+              <div class="panel-glass" style="padding: 0; overflow: hidden;">
+                <!-- Week Navigation Bar with Month Name & Date Range -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(17,18,27,0.85); border-bottom: 1px solid rgba(255,255,255,0.08);">
+                  <button id="btn-week-prev" class="icon-btn" title="Previous Week">
+                    <span class="material-symbols-outlined" style="font-size: 20px;">chevron_left</span>
+                  </button>
+                  <div style="text-align: center;">
+                    <div id="week-month-heading" class="font-fraunces" style="font-size: 16px; color: #EDEDF3; font-weight: 700;">August 2026</div>
+                    <div id="week-period-label" class="font-mono" style="font-size: 11px; color: #4FD6C4; margin-top: 2px;">Aug 17 – Aug 23, 2026</div>
+                  </div>
+                  <button id="btn-week-next" class="icon-btn" title="Next Week">
+                    <span class="material-symbols-outlined" style="font-size: 20px;">chevron_right</span>
+                  </button>
+                </div>
+
+                <!-- Week Columns Header with Actual Dates (e.g. Mon, Aug 17) -->
+                <div id="week-columns-header" style="display: grid; grid-template-columns: 60px repeat(7, 1fr); background: rgba(17,18,27,0.7); border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; font-size: 11px; font-weight: 700; color: #888B9E; padding: 10px 0;">
+                  <!-- Inserted dynamically via JS -->
+                </div>
+                <div style="max-height: 540px; overflow-y: auto;">
+                  <div id="week-grid-body" style="display: grid; grid-template-columns: 60px repeat(7, 1fr); position: relative; min-height: 700px;">
+                    <!-- Dynamic clickable time-slot tiles -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Side Sheet: Add / Edit Task -->
+          <div id="add-task-sheet" class="add-task-sheet">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <h3 id="task-sheet-title" class="font-fraunces" style="font-size: 18px; color: #EDEDF3;">Add Task</h3>
+              <button id="btn-close-task-sheet" class="icon-btn" style="width: 28px; height: 28px;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+              </button>
+            </div>
+
+            <form id="form-add-task" style="display: flex; flex-direction: column; gap: 14px; max-height: 540px; overflow-y: auto; padding-right: 4px;">
+              <input id="input-task-id" type="hidden" value="">
+
+              <!-- 1. Task Name -->
+              <div class="form-group">
+                <label class="form-label">Task Name</label>
+                <input id="input-task-name" type="text" placeholder="e.g. Deep Work, Research, Reading" required class="form-input">
+              </div>
+
+              <!-- 2. Start Time & End Time with Auto-Calculated Duration (Round 13) -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                  <label class="form-label">Start Time</label>
+                  <input id="input-task-time" type="time" value="14:00" required class="form-input font-mono">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">End Time</label>
+                  <input id="input-task-end-time" type="time" value="15:00" required class="form-input font-mono">
+                </div>
+              </div>
+
+              <!-- Live Calculated Duration & Inline Error Indicator -->
+              <div id="task-duration-preview-row" style="display: flex; align-items: center; justify-content: space-between; margin-top: -6px; margin-bottom: 12px; padding: 6px 10px; background: #11121B; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="material-symbols-outlined" style="font-size: 15px; color: #4FD6C4;">timer</span>
+                  <span style="font-size: 11px; color: #888B9E;">Duration:</span>
+                  <strong id="task-calculated-duration-badge" style="font-family: var(--font-mono); font-size: 11px; color: #4FD6C4; background: rgba(79,214,196,0.12); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(79,214,196,0.25);">60 min</strong>
+                </div>
+                <div id="task-time-validation-error" class="hidden" style="display: inline-flex; align-items: center; gap: 4px; color: #ffb4ab; font-size: 11px; font-weight: 700;">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">error</span>
+                  <span>End time must be after start time</span>
+                </div>
+              </div>
+
+              <!-- 3. Task Type -->
+              <div class="form-group">
+                <label class="form-label">Task Type</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <button type="button" id="btn-type-blur" class="dur-btn active" style="padding: 10px; border-radius: 8px; text-align: left; display: flex; flex-direction: column; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">visibility_off</span>
+                    <span style="font-size: 12px; font-weight: 600;">Blur only</span>
+                  </button>
+                  <button type="button" id="btn-type-url" class="dur-btn" style="padding: 10px; border-radius: 8px; text-align: left; display: flex; flex-direction: column; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: #4FD6C4;">link</span>
+                    <span style="font-size: 12px; font-weight: 600;">URL task</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 4. Allowed URLs (dynamic) -->
+              <div id="allowed-urls-section" class="form-group hidden">
+                <label class="form-label" style="color: #4FD6C4;">Allowed URLs</label>
+                <div id="allowed-urls-list" style="display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Dynamic rows -->
+                </div>
+                <button type="button" id="btn-add-url-row" style="background: none; border: none; color: #4FD6C4; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Add another URL
+                </button>
+                <p style="font-size: 11px; color: #888B9E; font-style: italic; margin-top: 4px;">
+                  Only these web pages will remain accessible during this focus session.
+                </p>
+              </div>
+
+              <!-- 5. Schedule Mode: Specific Date or Recurring Weekly -->
+              <div class="form-group">
+                <label class="form-label">Schedule Mode</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                  <button type="button" id="btn-sched-recurring" class="dur-btn active" style="padding: 8px; font-size: 12px; font-weight: 600;">Recurring Weekly</button>
+                  <button type="button" id="btn-sched-specific" class="dur-btn" style="padding: 8px; font-size: 12px; font-weight: 600;">Specific Date</button>
+                </div>
+
+                <!-- Mode A: Specific Calendar Date (Custom Styled Segmented Date Picker) -->
+                <div id="section-task-specific-date" class="hidden" style="margin-top: 4px;">
+                  <label class="form-label" style="font-size: 11px; color: #4FD6C4;">Select Calendar Date</label>
+                  <div id="btn-open-task-date-picker" class="segmented-date-wrapper" style="display: flex; align-items: center; justify-content: space-between; background: #11121B; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 6px 12px; gap: 6px; cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                      <input id="task-date-day" type="text" maxlength="2" placeholder="DD" class="seg-input font-mono" style="width: 26px; background: transparent; border: none; font-size: 12px; color: #EDEDF3; text-align: center; outline: none;">
+                      <span style="color: rgba(255,255,255,0.3); font-size: 12px;">/</span>
+                      <input id="task-date-month" type="text" maxlength="2" placeholder="MM" class="seg-input font-mono" style="width: 26px; background: transparent; border: none; font-size: 12px; color: #EDEDF3; text-align: center; outline: none;">
+                      <span style="color: rgba(255,255,255,0.3); font-size: 12px;">/</span>
+                      <input id="task-date-year" type="text" maxlength="4" placeholder="YYYY" class="seg-input font-mono" style="width: 44px; background: transparent; border: none; font-size: 12px; color: #EDEDF3; text-align: center; outline: none;">
+                    </div>
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: #4FD6C4;">calendar_month</span>
+                  </div>
+                  <input id="input-task-date" type="hidden" value="">
+                </div>
+
+                <!-- Mode B: Recurring Weekly Days -->
+                <div id="section-task-repeat-days" style="margin-top: 4px;">
+                  <div style="display: flex; justify-content: space-between; gap: 4px;">
+                    <button type="button" class="day-pill dur-btn active" data-day="Mon">M</button>
+                    <button type="button" class="day-pill dur-btn active" data-day="Tue">T</button>
+                    <button type="button" class="day-pill dur-btn active" data-day="Wed">W</button>
+                    <button type="button" class="day-pill dur-btn active" data-day="Thu">T</button>
+                    <button type="button" class="day-pill dur-btn active" data-day="Fri">F</button>
+                    <button type="button" class="day-pill dur-btn" data-day="Sat">S</button>
+                    <button type="button" class="day-pill dur-btn" data-day="Sun">S</button>
+                  </div>
+                  <button type="button" id="btn-everyday-shortcut" style="background: none; border: none; color: #888B9E; font-size: 11px; cursor: pointer; text-align: left; margin-top: 4px;">
+                    Every day this week
+                  </button>
+                </div>
+              </div>
+
+              <!-- 6. Strict Mode Toggle -->
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #11121B; border: 1px solid var(--border); border-radius: 8px;">
+                <div>
+                  <div style="font-size: 12px; font-weight: 600; color: #EDEDF3;">Strict Mode</div>
+                  <div style="font-size: 10px; color: #888B9E;">Auto re-blurs if you leave allowed tabs.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="check-strict-mode" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <!-- 7. Task Sound -->
+              <div class="form-group">
+                <label class="form-label">Audio Cue</label>
+                <select id="select-task-sound" class="form-input">
+                  <option value="">None</option>
+                </select>
+              </div>
+
+              <!-- 8. Time Conflict Warning Banner -->
+              <div id="conflict-warning-banner" style="background: rgba(231,178,76,0.1); border: 1px solid #E7B24C; padding: 10px 12px; border-radius: 8px; display: none; align-items: flex-start; gap: 8px;">
+                <span class="material-symbols-outlined" style="color: #E7B24C; font-size: 18px;">warning</span>
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: #E7B24C;">Time conflict detected</div>
+                  <div id="conflict-warning-text" style="font-size: 11px; color: #EDEDF3; margin-top: 2px;">Overlaps with existing task.</div>
+                </div>
+              </div>
+
+              <!-- Form Buttons -->
+              <div style="display: flex; gap: 8px; margin-top: 6px;">
+                <button type="button" id="btn-delete-task-sheet" class="dur-btn hidden" style="background: rgba(255, 180, 171, 0.1); border: 1px solid rgba(255, 180, 171, 0.3); color: #ffb4ab; padding: 10px 12px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">delete</span> Delete
+                </button>
+                <button type="button" id="btn-cancel-task" class="dur-btn" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">Cancel</button>
+                <button type="submit" id="btn-submit-task" class="btn-primary-action" style="flex: 2; margin-bottom: 0; padding: 10px; border-radius: 8px;">Save Task</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PANEL 3: BOOKMARKS ================= -->
+      <section id="panel-bookmarks" class="panel-view hidden">
+        <!-- Header -->
+        <div class="panel-header-block">
+          <div>
+            <h2 class="panel-title-lg">Bookmarks</h2>
+            <p class="panel-subtitle">Organize reference links and focus resources.</p>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input id="input-bookmark-search" type="text" placeholder="Search bookmarks..." class="form-input" style="width: 220px;">
+            <button id="btn-open-add-bookmark" class="btn-quick-focus" style="color: #4FD6C4; background: rgba(79,214,196,0.1); border-color: rgba(79,214,196,0.3);">
+              <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Add bookmark
+            </button>
+          </div>
+        </div>
+
+        <div class="bookmarks-layout">
+          <!-- Collections Rail -->
+          <div class="bookmarks-rail">
+            <div>
+              <div class="section-label-tag" style="margin-bottom: 10px;">Collections</div>
+              <div id="bookmark-collections-list" style="display: flex; flex-direction: column; gap: 6px;">
+                <!-- Dynamic collections buttons -->
+              </div>
+            </div>
+
+            <div>
+              <div class="section-label-tag" style="margin-bottom: 10px;">Tags</div>
+              <div id="bookmark-tags-container" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <!-- Dynamic tag pills -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Bookmarks Grid -->
+          <div id="bookmarks-grid" class="bookmarks-grid">
+            <!-- Dynamic bookmark cards inserted via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PANEL 4: PRIVATE TAB ================= -->
+      <section id="panel-private-tab" class="panel-view hidden">
+        <!-- 1. Setup Card -->
+        <div id="private-setup-card" class="auth-center-card hidden">
+          <div class="lock-avatar-circle">
+            <span class="material-symbols-outlined" style="font-size: 32px;">lock</span>
+          </div>
+          <h3 class="font-fraunces" style="font-size: 24px; color: #EDEDF3; margin-bottom: 4px;">Setup Private Tab</h3>
+          <p class="panel-subtitle" style="margin-bottom: 20px;">Create your master password and secure recovery code.</p>
+
+          <form id="form-private-setup" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+            <div class="form-group" style="text-align: left;">
+              <label class="form-label">Password</label>
+              <input id="input-setup-pwd" type="password" required placeholder="••••••••" class="form-input">
+            </div>
+            <div class="form-group" style="text-align: left;">
+              <label class="form-label">Confirm Password</label>
+              <input id="input-setup-confirm-pwd" type="password" required placeholder="••••••••" class="form-input">
+            </div>
+            <div class="form-group" style="text-align: left;">
+              <label class="form-label">Custom Recovery Code</label>
+              <input id="input-setup-recovery" type="text" required placeholder="e.g. 789456 or secret-code" class="form-input font-mono">
+              <span style="font-size: 10px; color: #888B9E; margin-top: 2px;">Save this code securely. Needed to reset password.</span>
+            </div>
+            <button type="submit" class="btn-primary-action" style="margin-top: 8px; width: 100%; justify-content: center; background: #4FD6C4; color: #11121B;">
+              Save & Lock
+            </button>
+          </form>
+        </div>
+
+        <!-- 2. Locked Card -->
+        <div id="private-lock-card" class="auth-center-card">
+          <div class="lock-avatar-circle">
+            <span class="material-symbols-outlined" style="font-size: 32px; font-variation-settings: 'FILL' 1;">lock</span>
+          </div>
+          <h3 class="font-fraunces" style="font-size: 24px; color: #EDEDF3; margin-bottom: 4px;">Private Tab</h3>
+          <p class="panel-subtitle" style="margin-bottom: 20px;">Authenticate to access protected domain filters.</p>
+
+          <form id="form-private-unlock" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+            <input id="input-private-unlock-pwd" type="password" autofocus placeholder="••••••••" class="form-input font-mono" style="text-align: center; letter-spacing: 0.3em; font-size: 16px; padding: 12px;">
+            <button type="submit" class="btn-primary-action" style="width: 100%; justify-content: center; background: #4FD6C4; color: #11121B;">
+              Unlock <span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span>
+            </button>
+            <button type="button" id="btn-forgot-pwd" style="background: none; border: none; color: #888B9E; font-size: 11px; cursor: pointer;">
+              Forgot Password / Reset with Recovery Code
+            </button>
+          </form>
+        </div>
+
+        <!-- 3. Unlocked Content View -->
+        <div id="private-unlocked-content" class="hidden" style="max-width: 900px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px;">
+          <div class="panel-header-block">
+            <div>
+              <h2 class="panel-title-lg">Private Tab Protection</h2>
+              <p class="panel-subtitle">Manage blocked websites and local offline adult filtering.</p>
+            </div>
+            <button id="btn-relock-private" class="dur-btn active" style="padding: 6px 14px;">
+              <span class="material-symbols-outlined" style="font-size: 14px;">lock</span> Lock Now
+            </button>
+          </div>
+
+          <!-- Custom Blocked Sites -->
+          <div class="panel-glass">
+            <div class="section-label-tag" style="color: #4FD6C4; margin-bottom: 12px;">Custom Blocked Websites</div>
+            <form id="form-add-blocked-site" style="display: flex; gap: 10px; margin-bottom: 16px;">
+              <input id="input-new-blocked-site" type="text" placeholder="e.g. facebook.com, reddit.com" required class="form-input" style="flex: 1;">
+              <button type="submit" class="btn-quick-focus" style="background: #4FD6C4; color: #11121B; border: none;">
+                Block Site
+              </button>
+            </form>
+            <div id="blocked-domains-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Dynamic blocked domains -->
+            </div>
+          </div>
+
+          <!-- StevenBlack Adult Content Blocker Toggle -->
+          <div class="panel-glass" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="max-width: 600px;">
+              <h3 class="font-fraunces" style="font-size: 18px; color: #EDEDF3;">Block adult and explicit content automatically</h3>
+              <p style="font-size: 12px; color: #888B9E; margin-top: 4px;">
+                Filters explicit websites using a local offline blocklist (StevenBlack compilation, ~30K domains). Fully offline, zero external lookups.
+              </p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="check-adult-blocker">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PANEL 5: SOUNDS LIBRARY ================= -->
+      <section id="panel-sounds" class="panel-view hidden">
+        <div class="namaz-max-container">
+          <div class="panel-header-block">
+            <div>
+              <h2 class="panel-title-lg">Sounds Library</h2>
+              <p class="panel-subtitle">Manage focus audio cues, azaan call sounds, and recorded voice notes.</p>
+            </div>
+            <button id="btn-open-add-sound" class="btn-primary-action" style="margin-bottom: 0; padding: 8px 18px;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Add sound
+            </button>
+          </div>
+
+          <div class="panel-glass">
+            <div style="display: grid; grid-template-columns: 50px 1fr 80px 120px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 700; color: #888B9E; text-transform: uppercase;">
+              <div style="text-align: center;">Play</div>
+              <div>Name</div>
+              <div style="text-align: right;">Duration</div>
+              <div style="padding-left: 16px;">Used In</div>
+            </div>
+            <div id="sounds-list-container" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <!-- Dynamic sounds list -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PANEL 6: SETTINGS ================= -->
+      <section id="panel-settings" class="panel-view hidden">
+        <div style="max-width: 1000px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px;">
+          <div class="panel-header-block">
+            <div>
+              <h2 class="panel-title-lg">Settings</h2>
+              <p class="panel-subtitle">Configure system startup, location, and browser profiles.</p>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- General Settings -->
+            <div class="panel-glass">
+              <div style="display: flex; align-items: center; gap: 8px; color: #E7B24C; margin-bottom: 16px;">
+                <span class="material-symbols-outlined">tune</span>
+                <h3 class="font-fraunces" style="font-size: 18px; color: #EDEDF3;">General</h3>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 12px; font-weight: 600; color: #EDEDF3;">Start automatically</div>
+                    <div style="font-size: 10px; color: #888B9E;">Launch Day Arc on Windows computer boot.</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="setting-auto-start" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.04);">
+                  <div>
+                    <div style="font-size: 12px; font-weight: 600; color: #EDEDF3;">Run in background after closing</div>
+                    <div style="font-size: 10px; color: #888B9E;">Keeps system tray active. Quit only from tray icon.</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="setting-run-background" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.04);">
+                  <div>
+                    <div style="font-size: 12px; font-weight: 600; color: #EDEDF3;">Blur screen enforcement</div>
+                    <div style="font-size: 10px; color: #888B9E;">Blur full desktop during focus sessions. If off, only sound/notification plays.</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="setting-blur-enforcement" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Time & Location -->
+            <div class="panel-glass">
+              <div style="display: flex; align-items: center; gap: 8px; color: #4FD6C4; margin-bottom: 16px;">
+                <span class="material-symbols-outlined">public</span>
+                <h3 class="font-fraunces" style="font-size: 18px; color: #EDEDF3;">Time & Location</h3>
+              </div>
+              <div class="form-group">
+                <label class="form-label">City & Timezone</label>
+                <select id="setting-city-select" class="form-input">
+                  <!-- Populated via JS -->
+                </select>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.04);">
+                <div>
+                  <div style="font-size: 12px; font-weight: 600; color: #EDEDF3;">12-Hour Format (AM/PM)</div>
+                  <div style="font-size: 10px; color: #888B9E;">Display times in 12-hour AM/PM format throughout the entire app.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="setting-time-format" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Browser Focus & Profiles (Section 10) -->
+            <div class="panel-glass" style="grid-column: span 2;">
+              <div style="display: flex; align-items: center; gap: 8px; color: #E7B24C; margin-bottom: 8px;">
+                <span class="material-symbols-outlined">language</span>
+                <h3 class="font-fraunces" style="font-size: 18px; color: #EDEDF3;">Browser Focus & Installed Profiles</h3>
+              </div>
+              <p class="panel-subtitle" style="margin-bottom: 14px;">Select your browser and exact user profile for launching URL-enforced tasks.</p>
+              
+              <div id="detected-browsers-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                <!-- Rendered via JS -->
+              </div>
+
+              <div class="form-group" style="padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
+                <label class="form-label">Target Profile for URL Tasks</label>
+                <select id="select-browser-profile" class="form-input font-mono">
+                  <!-- Populated via JS -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Private Tab Password Reset in Settings -->
+            <div class="panel-glass" style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h3 class="font-fraunces" style="font-size: 18px; color: #EDEDF3;">Private Tab Password</h3>
+                <p class="panel-subtitle">Reset your master password using your recovery code.</p>
+              </div>
+              <button id="btn-settings-change-pwd" class="btn-quick-focus">
+                <span class="material-symbols-outlined" style="font-size: 16px;">key</span> Change Password
+              </button>
+            </div>
+
+            <!-- Reset All Day Arc Data (Clean Reinstall / Complete Wipe) -->
+            <div class="panel-glass" style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center; border-color: rgba(255, 180, 171, 0.3);">
+              <div>
+                <h3 class="font-fraunces" style="font-size: 18px; color: #FFB4AB;">Reset All Day Arc Data</h3>
+                <p class="panel-subtitle">Completely wipes all stored tasks, Namaz settings, bookmarks, and focus states for a 100% clean slate.</p>
+              </div>
+              <button id="btn-reset-all-data" class="btn-quick-focus" style="background: rgba(255, 180, 171, 0.15); color: #FFB4AB; border: 1px solid rgba(255, 180, 171, 0.4);">
+                <span class="material-symbols-outlined" style="font-size: 16px;">delete_forever</span> Reset All Data
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= GLOBAL FOCUS / BLUR OVERLAY ================= -->
+  <div id="focus-overlay" class="hidden">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 32px; max-width: 600px; text-align: center; padding: 24px;">
+      <div>
+        <div class="badge-amber" style="display: inline-block; margin-bottom: 8px;">FOCUS MODE ACTIVE</div>
+        <h1 id="overlay-task-name" class="font-fraunces" style="font-size: 36px; color: #EDEDF3; line-height: 1.2;">
+          Focus Session
+        </h1>
+        <p id="overlay-helper-desc" class="panel-subtitle" style="margin-top: 6px;">
+          Screen is blurred to maintain deep concentration.
+        </p>
+      </div>
+
+      <!-- Circular SVG Countdown Ring -->
+      <div style="position: relative; width: 260px; height: 260px; display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 120 120" style="position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg);">
+          <circle cx="60" cy="60" r="54" fill="none" stroke="#1B1D2B" stroke-width="3"></circle>
+          <circle id="overlay-progress-ring" cx="60" cy="60" r="54" fill="none" stroke="#4FD6C4" stroke-width="3.5" stroke-dasharray="339.29" stroke-dashoffset="0" stroke-linecap="round" style="transition: stroke-dashoffset 0.3s;"></circle>
+        </svg>
+
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <div id="overlay-countdown" class="font-mono" style="font-size: 44px; font-weight: 700; color: #4FD6C4; text-shadow: 0 0 16px rgba(79,214,196,0.5);">
+            --:--
+          </div>
+          <div style="font-size: 10px; color: #4FD6C4; letter-spacing: 0.15em; font-family: var(--font-mono); margin-top: 4px;">REMAINING</div>
+        </div>
+      </div>
+
+      <!-- Dismiss Button (Only if NOT Strict mode) -->
+      <div id="overlay-actions-container">
+        <button id="btn-stop-overlay" class="dur-btn" style="padding: 8px 24px; border-radius: 9999px; border: 1px solid var(--border); font-size: 12px;">
+          End Session Early
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal 1: Add Bookmark (URL & Folder only) -->
+  <div id="modal-add-bookmark" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1100; display: flex; align-items: center; justify-content: center;" class="hidden">
+    <div class="panel-glass" style="max-width: 440px; width: 100%; margin: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 class="font-fraunces" style="font-size: 20px; color: #EDEDF3;">Add Bookmark</h3>
+        <button class="modal-close icon-btn"><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <form id="form-add-bookmark" style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="form-group">
+          <label class="form-label">Website URL</label>
+          <input id="input-bm-url" type="text" placeholder="https://github.com/..." required class="form-input font-mono">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Folder</label>
+          <select id="select-bm-folder" class="form-input">
+            <option value="General">General</option>
+            <option value="__new__">+ New Folder...</option>
+          </select>
+          <input id="input-bm-new-folder" type="text" placeholder="Type new folder name..." class="form-input hidden" style="margin-top: 8px;">
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button type="button" class="modal-close dur-btn" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">Cancel</button>
+          <button type="submit" class="btn-primary-action" style="flex: 2; margin-bottom: 0; padding: 10px; border-radius: 8px; background: #4FD6C4; color: #11121B;">Save Bookmark</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Add Sound -->
+  <div id="modal-add-sound" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1100; display: flex; align-items: center; justify-content: center;" class="hidden">
+    <div class="panel-glass" style="max-width: 440px; width: 100%; margin: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 class="font-fraunces" style="font-size: 20px; color: #EDEDF3;">Add Sound</h3>
+        <button class="modal-close icon-btn"><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div style="display: flex; background: #11121B; padding: 3px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px;">
+        <button id="btn-sound-tab-record" class="dur-btn active" style="flex: 1; padding: 8px; font-weight: 700;">Record Audio</button>
+        <button id="btn-sound-tab-upload" class="dur-btn" style="flex: 1; padding: 8px;">Upload File</button>
+      </div>
+
+      <!-- Tab A: Record Audio -->
+      <div id="sound-record-view" style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 8px 0;">
+        <div id="mic-status-label" style="font-size: 12px; color: #888B9E;">Click below to record microphone audio</div>
+        <button id="btn-toggle-recording" style="width: 60px; height: 60px; border-radius: 50%; background: #11121B; border: 2px solid #E7B24C; color: #E7B24C; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          <span class="material-symbols-outlined" style="font-size: 28px;">mic</span>
+        </button>
+        <div id="recording-time" class="font-mono" style="font-size: 18px; font-weight: 600; color: #E7B24C;">00:00</div>
+        
+        <div class="form-group" style="width: 100%; text-align: left;">
+          <label class="form-label">Sound Name</label>
+          <input id="input-record-name" type="text" placeholder="e.g. My Voice Reminder" class="form-input">
+        </div>
+        <button id="btn-save-recorded-sound" disabled class="btn-primary-action" style="width: 100%; margin-bottom: 0; padding: 10px; justify-content: center;">
+          Save Recording
+        </button>
+      </div>
+
+      <!-- Tab B: Upload File -->
+      <div id="sound-upload-view" class="hidden" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Sound Name</label>
+          <input id="input-upload-sound-name" type="text" placeholder="e.g. Custom Azaan / Chime" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Audio File (MP3, WAV, OGG)</label>
+          <input id="input-sound-file" type="file" accept="audio/*" class="form-input" style="padding: 6px;">
+        </div>
+        <button id="btn-save-uploaded-sound" class="btn-primary-action" style="width: 100%; margin-top: 8px; padding: 10px; justify-content: center;">
+          Save Uploaded Sound
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Reset Password -->
+  <div id="modal-change-pwd" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1100; display: flex; align-items: center; justify-content: center;" class="hidden">
+    <div class="panel-glass" style="max-width: 440px; width: 100%; margin: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 class="font-fraunces" style="font-size: 20px; color: #EDEDF3;">Reset Password</h3>
+        <button class="modal-close icon-btn"><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <form id="form-reset-pwd" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Enter Recovery Code</label>
+          <input id="input-reset-recovery" type="text" required placeholder="Saved recovery code" class="form-input font-mono">
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input id="input-reset-new-pwd" type="password" required placeholder="••••••••" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input id="input-reset-confirm-pwd" type="password" required placeholder="••••••••" class="form-input">
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button type="button" class="modal-close dur-btn" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">Cancel</button>
+          <button type="submit" class="btn-primary-action" style="flex: 2; margin-bottom: 0; padding: 10px; border-radius: 8px; background: #4FD6C4; color: #11121B;">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Set Manual Namaz Time -->
+  <div id="modal-override-namaz" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1100; display: flex; align-items: center; justify-content: center;" class="hidden">
+    <div class="panel-glass" style="max-width: 400px; width: 100%; margin: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 id="override-modal-title" class="font-fraunces" style="font-size: 20px; color: #EDEDF3;">Set Prayer Time</h3>
+        <button class="modal-close icon-btn"><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <form id="form-override-namaz" style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="form-group">
+          <label class="form-label">Prayer Time (24h HH:MM)</label>
+          <input id="input-override-time" type="time" required class="form-input font-mono" style="font-size: 18px; text-align: center;">
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button type="button" id="btn-reset-namaz-auto" class="dur-btn" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); color: #ffb4ab;">Clear / Unset</button>
+          <button type="submit" class="btn-primary-action" style="flex: 1; margin-bottom: 0; padding: 10px; border-radius: 8px;">Save Time</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Select Azaan Sound -->
+  <div id="modal-select-azaan" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1100; display: flex; align-items: center; justify-content: center;" class="hidden">
+    <div class="panel-glass" style="max-width: 460px; width: 100%; margin: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 class="font-fraunces" style="font-size: 20px; color: #EDEDF3;">Select Azaan Call Sound</h3>
+        <button class="modal-close icon-btn"><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div id="azaan-sound-options-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto;">
+        <!-- Dynamic sound list -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CUSTOM DAY ARC DARK THEME DATE PICKER POPOVER ================= -->
+  <div id="custom-date-picker-popover" class="custom-date-picker-modal hidden">
+    <div class="dp-glass-card">
+      <!-- Month / Year Navigation Header -->
+      <div class="dp-header">
+        <button type="button" id="dp-btn-prev-month" class="icon-btn" style="width: 28px; height: 28px;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">chevron_left</span>
+        </button>
+        <div id="dp-month-year-title" class="font-fraunces" style="font-size: 14px; color: #EDEDF3; font-weight: 700;">August 2026</div>
+        <button type="button" id="dp-btn-next-month" class="icon-btn" style="width: 28px; height: 28px;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
+        </button>
+      </div>
+
+      <!-- Day of Week Header -->
+      <div class="dp-weekdays-grid">
+        <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+      </div>
+
+      <!-- Days Grid -->
+      <div id="dp-days-grid" class="dp-days-grid">
+        <!-- Dynamic Day Buttons -->
+      </div>
+
+      <!-- Footer Shortcuts -->
+      <div class="dp-footer">
+        <div style="display: flex; gap: 6px;">
+          <button type="button" id="dp-btn-today" class="dur-btn" style="padding: 4px 8px; font-size: 10px; font-weight: 700;">Today</button>
+          <button type="button" id="dp-btn-tomorrow" class="dur-btn" style="padding: 4px 8px; font-size: 10px;">Tomorrow</button>
+        </div>
+        <button type="button" id="dp-btn-close" class="icon-btn" style="width: 24px; height: 24px;" title="Close">
+          <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Service & Renderer Script -->
+  <script src="src/services/audio-synth.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

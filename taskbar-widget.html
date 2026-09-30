@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Day Arc — Taskbar Countdown</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+      font-family: 'Manrope', sans-serif;
+      user-select: none;
+      -webkit-app-region: no-drag;
+    }
+    .widget-pill {
+      width: 100%;
+      height: 100%;
+      background: rgba(17, 18, 27, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(231, 178, 76, 0.45);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(231, 178, 76, 0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .widget-pill:hover {
+      border-color: #E7B24C;
+      background: rgba(27, 29, 43, 0.98);
+    }
+    .left-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex: 1;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #E7B24C;
+      box-shadow: 0 0 8px #E7B24C;
+      animation: pulseDot 1.5s infinite;
+      flex-shrink: 0;
+    }
+    .status-dot.active {
+      background: #4FD6C4;
+      box-shadow: 0 0 8px #4FD6C4;
+    }
+    .task-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .tag-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #E7B24C;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .task-name-text {
+      font-size: 12px;
+      font-weight: 700;
+      color: #EDEDF3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 140px;
+      margin-top: 2px;
+    }
+    .right-timer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(231, 178, 76, 0.12);
+      border: 1px solid rgba(231, 178, 76, 0.3);
+      padding: 4px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .timer-digits {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 800;
+      color: #E7B24C;
+      letter-spacing: 0.05em;
+      font-feature-settings: "tnum";
+    }
+    .timer-digits.active {
+      color: #4FD6C4;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="widget-container" class="widget-pill" title="Click to open Day Arc">
+    <div class="left-badge">
+      <div id="status-dot" class="status-dot"></div>
+      <div class="task-info">
+        <span id="tag-label" class="tag-label">UPCOMING IN</span>
+        <span id="task-name-text" class="task-name-text">Loading...</span>
+      </div>
+    </div>
+    <div id="timer-box" class="right-timer">
+      <span class="material-symbols-outlined" style="font-size: 15px; color: #E7B24C;">timer</span>
+      <span id="timer-digits" class="timer-digits">05:00</span>
+    </div>
+  </div>
+
+  <script>
+    const dot = document.getElementById('status-dot');
+    const tagLabel = document.getElementById('tag-label');
+    const taskNameText = document.getElementById('task-name-text');
+    const timerDigits = document.getElementById('timer-digits');
+    const timerBox = document.getElementById('timer-box');
+    const container = document.getElementById('widget-container');
+
+    if (window.dayarc && window.dayarc.onUpdateTaskbarWidget) {
+      window.dayarc.onUpdateTaskbarWidget((data) => {
+        if (!data) return;
+        taskNameText.textContent = data.taskName || 'Focus Session';
+        
+        if (data.isActiveSession) {
+          tagLabel.textContent = 'FOCUS ACTIVE';
+          tagLabel.style.color = '#4FD6C4';
+          dot.className = 'status-dot active';
+          timerDigits.textContent = data.countStr || '00:00';
+          timerDigits.className = 'timer-digits active';
+          timerBox.style.background = 'rgba(79, 214, 196, 0.15)';
+          timerBox.style.borderColor = 'rgba(79, 214, 196, 0.4)';
+        } else if (data.isStartingNow) {
+          tagLabel.textContent = 'STARTING NOW';
+          tagLabel.style.color = '#4FD6C4';
+          dot.className = 'status-dot active';
+          timerDigits.textContent = 'START';
+          timerDigits.className = 'timer-digits active';
+          timerBox.style.background = 'rgba(79, 214, 196, 0.15)';
+          timerBox.style.borderColor = 'rgba(79, 214, 196, 0.4)';
+        } else {
+          tagLabel.textContent = 'UPCOMING IN';
+          tagLabel.style.color = '#E7B24C';
+          dot.className = 'status-dot';
+          timerDigits.textContent = data.countStr || '05:00';
+          timerDigits.className = 'timer-digits';
+          timerBox.style.background = 'rgba(231, 178, 76, 0.12)';
+          timerBox.style.borderColor = 'rgba(231, 178, 76, 0.3)';
+        }
+      });
+    }
+
+    container.addEventListener('click', () => {
+      if (window.dayarc && window.dayarc.openMainWindow) {
+        window.dayarc.openMainWindow();
+      }
+    });
+  </script>
+</body>
+</html>
