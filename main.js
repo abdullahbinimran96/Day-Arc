@@ -274,7 +274,7 @@ function createBlurOverlayWindow() {
     width: width,
     height: height,
     fullscreen: false,
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     frame: false,
     transparent: true,
     skipTaskbar: true,
@@ -289,7 +289,6 @@ function createBlurOverlayWindow() {
     }
   });
 
-  blurOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
   blurOverlayWindow.setVisibleOnAllWorkspaces(true);
   blurOverlayWindow.loadFile('overlay.html');
 
@@ -472,17 +471,18 @@ function shouldBlurTask(taskOrSession) {
 function focusBrowserWindow(browserName = 'chrome') {
   if (process.platform !== 'win32') return;
   const script = `
+    $ws = New-Object -ComObject WScript.Shell;
     $procs = Get-Process chrome, msedge, brave, firefox, arc -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 };
     if ($procs) {
-      $p = $procs | Select-Object -First 1;
-      $w32 = Add-Type -MemberDefinition '[DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd); [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);' -Name 'W32F_${Date.now()}' -Namespace 'NativeF_${Date.now()}' -PassThru;
-      $w32::ShowWindow($p.MainWindowHandle, 9);
-      $w32::SetForegroundWindow($p.MainWindowHandle);
+      foreach ($p in $procs) {
+        try {
+          $ws.AppActivate($p.Id) | Out-Null;
+        } catch {}
+      }
     }
   `;
   exec(`powershell -NoProfile -Command "${script.replace(/\r?\n\s*/g, ' ')}"`, (err) => {
-    if (err) console.warn('[TRIGGER] Focus browser warning:', err.message);
-    else console.log('[TRIGGER] Successfully focused browser window to foreground.');
+    if (!err) console.log('[TRIGGER] Activated browser window to foreground.');
   });
 }
 
@@ -516,10 +516,10 @@ function executeUrlTask(sessionData) {
   console.log(`[URL-TASK] Launching browser "${defaultBrowser}" (Profile: "${defaultProfile}") with normalized URLs:`, cleanUrls);
   browserProfiles.launchUrl(defaultBrowser, defaultProfile, cleanUrls);
 
-  // Explicitly focus the Chrome window to foreground
-  setTimeout(() => {
-    focusBrowserWindow(defaultBrowser);
-  }, 600);
+  // Explicitly focus the Chrome window to foreground with retries for window initialization
+  setTimeout(() => { focusBrowserWindow(defaultBrowser); }, 300);
+  setTimeout(() => { focusBrowserWindow(defaultBrowser); }, 800);
+  setTimeout(() => { focusBrowserWindow(defaultBrowser); }, 1500);
 
   // Send START_SESSION command to Chrome extension
   extensionServer.startSession(sessionData);
@@ -529,35 +529,38 @@ function executeUrlTask(sessionData) {
 
 function triggerStrictWindowEnforcement(unauthorizedProc = '') {
   if (!currentActiveSession) return;
-  const shouldBlur = shouldBlurTask(currentActiveSession);
   
-  if (shouldBlur && blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { x, y, width, height } = primaryDisplay.workArea;
-    blurOverlayWindow.setBounds({ x, y, width, height });
-    blurOverlayWindow.show();
-    blurOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
-    blurOverlayWindow.focus();
+  const isNamaz = (currentActiveSession.id && String(currentActiveSession.id).startsWith('namaz-')) ||
+                  currentActiveSession.task_type === 'namaz' ||
+                  (currentActiveSession.taskName && currentActiveSession.taskName.toLowerCase().startsWith('namaz'));
+
+  // Namaz tasks: strict screen-saver overlay
+  if (isNamaz) {
+    const shouldBlur = shouldBlurTask(currentActiveSession);
+    if (shouldBlur && blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { x, y, width, height } = primaryDisplay.workArea;
+      blurOverlayWindow.setBounds({ x, y, width, height });
+      blurOverlayWindow.show();
+      blurOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
+      blurOverlayWindow.focus();
+    }
+    return;
   }
 
-  // If this is a URL task, close/suppress unauthorized desktop windows (like Notepad, File Explorer, etc.) and bring Chrome/allowed browser to foreground
-  if (currentActiveSession && (currentActiveSession.isUrlTask || currentActiveSession.task_type === 'url')) {
+  // URL task enforcement: keep blur backdrop behind, focus browser, kill unauthorized apps
+  const isUrl = currentActiveSession.isUrlTask || currentActiveSession.task_type === 'url';
+  if (isUrl) {
     const defaultBrowser = dbManager.getSetting('default_browser') || 'chrome';
-    
-    // Close unauthorized desktop applications (Notepad, File Explorer folder windows, etc.) if opened during active task
     if (unauthorizedProc) {
       const lower = unauthorizedProc.toLowerCase();
       if (['notepad', 'wordpad', 'calc', 'calculator', 'cmd', 'powershell', 'vlc', 'mspaint', 'taskmgr'].includes(lower)) {
-        exec(`taskkill /F /IM ${lower}.exe /T`, (err) => {});
+        exec(`taskkill /F /IM ${lower}.exe /T`, () => {});
       } else if (lower === 'explorer' || lower === 'progman' || lower === 'workerw') {
-        // Close open File Explorer folder windows via COM (without killing desktop shell explorer.exe)
-        exec('powershell -NoProfile -Command "(New-Object -ComObject Shell.Application).Windows() | ForEach-Object { try { $_.Quit() } catch {} }"', (err) => {});
+        exec('powershell -NoProfile -Command "(New-Object -ComObject Shell.Application).Windows() | ForEach-Object { try { $_.Quit() } catch {} }"', () => {});
       }
     }
-    
-    // Notify Chrome extension to unminimize / restore task window
     extensionServer.restoreBrowserWindow();
-
     focusBrowserWindow(defaultBrowser);
   }
 }
@@ -932,14 +935,7 @@ function startFocusSessionInternal(sessionData) {
     }
   }
 
-  // 1. URL Task Execution
-  if (isUrl) {
-    executeUrlTask(sessionData);
-  } else {
-    extensionServer.startSession(sessionData);
-  }
-
-  // 2. Central Blur Policy Evaluation
+  // 1. Central Blur Policy Evaluation
   const shouldBlur = shouldBlurTask(sessionData);
   if (shouldBlur) {
     if (!blurOverlayWindow || blurOverlayWindow.isDestroyed()) {
@@ -948,11 +944,12 @@ function startFocusSessionInternal(sessionData) {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { x, y, width, height } = primaryDisplay.workArea;
     blurOverlayWindow.setBounds({ x, y, width, height });
-    blurOverlayWindow.show();
     if (isUrl) {
       blurOverlayWindow.setAlwaysOnTop(false);
+      blurOverlayWindow.showInactive();
     } else {
       blurOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
+      blurOverlayWindow.show();
       blurOverlayWindow.focus();
     }
     blurOverlayWindow.webContents.send('start-overlay', sessionData);
@@ -960,6 +957,16 @@ function startFocusSessionInternal(sessionData) {
     if (blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
       blurOverlayWindow.hide();
     }
+  }
+
+  // 2. URL Task Execution or Extension Session Start
+  if (isUrl) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.minimize();
+    }
+    executeUrlTask(sessionData);
+  } else {
+    extensionServer.startSession(sessionData);
   }
 
   // 3. Watchdog: Strict mode ONLY for Namaz (Daily tasks are non-strict)
