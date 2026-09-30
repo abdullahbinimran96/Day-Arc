@@ -3364,6 +3364,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => document.getElementById('input-reset-recovery').focus(), 50);
       });
     }
+
+    const btnOpenExtFolder = document.getElementById('btn-open-ext-folder');
+    if (btnOpenExtFolder && window.dayarc && window.dayarc.openExtensionFolder) {
+      btnOpenExtFolder.addEventListener('click', async () => {
+        const res = await window.dayarc.openExtensionFolder();
+        if (!res || !res.success) {
+          alert('Extension folder path: ' + (res ? res.path : 'not found'));
+        }
+      });
+    }
+
+    const btnReinstallExt = document.getElementById('btn-reinstall-ext');
+    if (btnReinstallExt && window.dayarc && window.dayarc.installBrowserExtensions) {
+      btnReinstallExt.addEventListener('click', async () => {
+        btnReinstallExt.disabled = true;
+        try {
+          await window.dayarc.installBrowserExtensions();
+          alert('Day Arc extension successfully registered in Windows Registry for Chrome, Edge, and Brave.');
+        } catch (e) {
+          alert('Error registering extension: ' + e.message);
+        } finally {
+          btnReinstallExt.disabled = false;
+        }
+      });
+    }
   }
 
   async function renderSettingsPanel() {

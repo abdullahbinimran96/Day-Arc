@@ -1161,6 +1161,15 @@ ipcMain.handle('install-browser-extensions', async () => {
   return browserInstaller.installAll();
 });
 
+ipcMain.handle('open-extension-folder', async () => {
+  const extPath = browserInstaller.extensionPath;
+  if (fs.existsSync(extPath)) {
+    shell.openPath(extPath);
+    return { success: true, path: extPath };
+  }
+  return { success: false, path: extPath };
+});
+
 ipcMain.handle('record-focus-session', async (event, session) => {
   dbManager.recordFocusSession(session);
   return true;

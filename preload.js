@@ -65,6 +65,7 @@ contextBridge.exposeInMainWorld('dayarc', {
   updateTaskbarCountdown: (data) => ipcRenderer.invoke('update-taskbar-countdown', data),
   onUpdateTaskbarWidget: (callback) => ipcRenderer.on('update-taskbar-widget-data', (event, data) => callback(data)),
   installBrowserExtensions: () => ipcRenderer.invoke('install-browser-extensions'),
+  openExtensionFolder: () => ipcRenderer.invoke('open-extension-folder'),
   resetAllData: () => ipcRenderer.invoke('reset-all-data'),
 
   // Auto-Updater

@@ -753,6 +753,27 @@
                   <!-- Populated via JS -->
                 </select>
               </div>
+
+              <!-- Browser Companion Extension Helper -->
+              <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <div style="font-size: 13px; font-weight: 600; color: #EDEDF3; display: flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: #4FD6C4;">extension</span>
+                    <span>Browser Companion Extension</span>
+                  </div>
+                  <div style="font-size: 11px; color: #888B9E; margin-top: 2px;">Automatically injected during URL tasks. Pre-registered in Windows Registry.</div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" id="btn-open-ext-folder" class="dur-btn" style="padding: 6px 12px; font-size: 11px; display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 15px;">folder_open</span>
+                    <span>Open Extension Folder</span>
+                  </button>
+                  <button type="button" id="btn-reinstall-ext" class="btn-quick-focus" style="padding: 6px 12px; font-size: 11px; display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 15px;">sync</span>
+                    <span>Re-register in Browsers</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- Master Password Reset in Settings -->

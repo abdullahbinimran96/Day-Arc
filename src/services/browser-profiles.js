@@ -10,6 +10,19 @@ class BrowserProfileService {
     this.appData = process.env.APPDATA || path.join(process.env.USERPROFILE || 'C:\\Users\\Default', 'AppData', 'Roaming');
     this.programFiles = process.env['ProgramFiles'] || 'C:\\Program Files';
     this.programFilesX86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+
+    let extPath = path.resolve(__dirname, '..', '..', 'chrome-extension');
+    try {
+      const electron = require('electron');
+      const app = electron.app || (electron.remote && electron.remote.app);
+      if (app && app.isPackaged) {
+        const unpacked = path.join(process.resourcesPath, 'app.asar.unpacked', 'chrome-extension');
+        const rootExt = path.join(process.resourcesPath, 'chrome-extension');
+        if (fs.existsSync(unpacked)) extPath = unpacked;
+        else if (fs.existsSync(rootExt)) extPath = rootExt;
+      }
+    } catch (e) {}
+    this.extensionPath = extPath;
   }
 
   detectBrowsers() {
@@ -226,6 +239,9 @@ class BrowserProfileService {
       // Chromium based (Chrome, Edge, Brave, Arc)
       if (profileId && profileId !== 'Default') {
         args.push(`--profile-directory=${profileId}`);
+      }
+      if (this.extensionPath && fs.existsSync(this.extensionPath)) {
+        args.push(`--load-extension=${this.extensionPath}`);
       }
       args.push(...urlList);
     }
