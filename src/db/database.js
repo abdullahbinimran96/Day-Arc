@@ -155,6 +155,8 @@ class DatabaseManager {
       azaan_sound_id: 'bundled-azaan-voice',
       block_adult_content: '0',
       idle_lock_mins: '3',
+      master_password_hash: '',
+      master_recovery_code: '',
       private_tab_password_hash: '',
       private_tab_recovery_code: '',
       active_session_state: ''

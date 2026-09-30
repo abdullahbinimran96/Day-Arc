@@ -470,19 +470,7 @@
                 </div>
               </div>
 
-              <!-- 6. Strict Mode Toggle -->
-              <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #11121B; border: 1px solid var(--border); border-radius: 8px;">
-                <div>
-                  <div style="font-size: 12px; font-weight: 600; color: #EDEDF3;">Strict Mode</div>
-                  <div style="font-size: 10px; color: #888B9E;">Auto re-blurs if you leave allowed tabs.</div>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="check-strict-mode" checked>
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-
-              <!-- 7. Task Sound -->
+              <!-- 6. Task Sound (Audio Cue) -->
               <div class="form-group">
                 <label class="form-label">Audio Cue</label>
                 <select id="select-task-sound" class="form-input">
@@ -1008,6 +996,126 @@
           <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= APP MASTER LOCK SCREEN ================= -->
+  <div id="app-lock-screen" style="position: fixed; inset: 0; background: #0B0C14; z-index: 99999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(25px);" class="hidden">
+    <div style="max-width: 440px; width: 100%; margin: 20px; padding: 32px; background: rgba(23, 25, 38, 0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.8);">
+      
+      <!-- Brand Logo & Header -->
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 56px; height: 56px; border-radius: 14px; background: rgba(79, 214, 196, 0.1); border: 1px solid rgba(79, 214, 196, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto;">
+          <span class="material-symbols-outlined" style="font-size: 32px; color: #4FD6C4;">lock</span>
+        </div>
+        <h2 id="app-lock-title" class="font-fraunces" style="font-size: 22px; color: #EDEDF3; letter-spacing: -0.01em;">Day Arc Protected</h2>
+        <p id="app-lock-subtitle" style="font-size: 12px; color: #888B9E; margin-top: 6px;">Enter your master password to unlock Day Arc.</p>
+      </div>
+
+      <!-- State A: Unlock Screen (When password exists) -->
+      <div id="app-lock-login-view">
+        <form id="form-app-unlock" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label">Master Password</label>
+            <input id="input-app-unlock-pwd" type="password" placeholder="Enter master password" required class="form-input" style="font-size: 14px; padding: 12px;">
+          </div>
+          <div id="app-unlock-error" class="hidden" style="color: #ffb4ab; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 16px;">error</span>
+            <span>Incorrect master password.</span>
+          </div>
+          <button type="submit" class="btn-primary-action" style="padding: 12px; font-size: 13px; font-weight: 700; border-radius: 8px;">
+            Unlock Day Arc
+          </button>
+          <div style="text-align: center; margin-top: 4px;">
+            <button type="button" id="btn-app-forgot-pwd" style="background: none; border: none; color: #E7B24C; font-size: 12px; cursor: pointer; text-decoration: underline;">
+              Forgot Password?
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- State B: Initial Setup Screen (When fresh install / no password yet) -->
+      <div id="app-lock-setup-view" class="hidden">
+        <form id="form-app-setup" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="form-group">
+            <label class="form-label">Create Master Password</label>
+            <input id="input-app-setup-pwd" type="password" placeholder="Enter new password" required class="form-input" style="font-size: 13px;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Master Password</label>
+            <input id="input-app-setup-confirm" type="password" placeholder="Confirm new password" required class="form-input" style="font-size: 13px;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Recovery Code / Hint</label>
+            <input id="input-app-setup-recovery" type="text" placeholder="e.g. secret keyword or birth year" required class="form-input" style="font-size: 13px;">
+            <p style="font-size: 10px; color: #888B9E; margin-top: 4px;">Used to reset password if forgotten.</p>
+          </div>
+          <div id="app-setup-error" class="hidden" style="color: #ffb4ab; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 16px;">error</span>
+            <span id="app-setup-error-text">Passwords do not match.</span>
+          </div>
+          <button type="submit" class="btn-primary-action" style="padding: 12px; font-size: 13px; font-weight: 700; border-radius: 8px;">
+            Set Master Password & Enter
+          </button>
+        </form>
+      </div>
+
+      <!-- State C: Password Reset Modal -->
+      <div id="app-lock-reset-view" class="hidden">
+        <form id="form-app-reset" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="form-group">
+            <label class="form-label">Recovery Code</label>
+            <input id="input-app-reset-code" type="text" placeholder="Enter your recovery code" required class="form-input" style="font-size: 13px;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input id="input-app-reset-new-pwd" type="password" placeholder="Enter new password" required class="form-input" style="font-size: 13px;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input id="input-app-reset-confirm" type="password" placeholder="Confirm new password" required class="form-input" style="font-size: 13px;">
+          </div>
+          <div id="app-reset-error" class="hidden" style="color: #ffb4ab; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 16px;">error</span>
+            <span id="app-reset-error-text">Incorrect recovery code.</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="btn-app-reset-cancel" class="dur-btn" style="flex: 1; padding: 10px;">Cancel</button>
+            <button type="submit" class="btn-primary-action" style="flex: 1; padding: 10px;">Update Password</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal: End Task Master Password Verification -->
+  <div id="modal-end-task-password" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 12000; display: flex; align-items: center; justify-content: center;" class="hidden">
+    <div class="panel-glass" style="max-width: 420px; width: 100%; margin: 20px; padding: 24px; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 16px 40px rgba(0,0,0,0.7);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="material-symbols-outlined" style="font-size: 20px; color: #ffb4ab;">lock</span>
+          <h3 class="font-fraunces" style="font-size: 18px; color: #EDEDF3;">Confirm End Task</h3>
+        </div>
+        <button id="btn-cancel-end-task-x" class="icon-btn" style="width: 28px; height: 28px;"><span class="material-symbols-outlined" style="font-size: 18px;">close</span></button>
+      </div>
+      <p style="font-size: 12px; color: #888B9E; margin-bottom: 14px;">
+        To end this running task early, enter your Day Arc master password.
+      </p>
+      <form id="form-confirm-end-task" style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="form-group">
+          <label class="form-label">Master Password</label>
+          <input id="input-end-task-pwd" type="password" placeholder="Enter master password" required class="form-input" style="padding: 10px 12px;">
+        </div>
+        <div id="end-task-error-text" class="hidden" style="color: #ffb4ab; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">error</span>
+          <span>Incorrect password. Task continues running.</span>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+          <button type="button" id="btn-cancel-end-task" class="dur-btn" style="flex: 1; padding: 10px;">Keep Running</button>
+          <button type="submit" class="btn-primary-action" style="flex: 1.2; padding: 10px; background: #ffb4ab; color: #690005; font-weight: 700;">Verify & End Task</button>
+        </div>
+      </form>
     </div>
   </div>
 

@@ -322,7 +322,13 @@ function startActiveWindowWatchdog() {
   if (activeSessionWatchdog) clearInterval(activeSessionWatchdog);
 
   activeSessionWatchdog = setInterval(() => {
-    if (!currentActiveSession || (!currentActiveSession.isStrict && !currentActiveSession.isUrlTask && currentActiveSession.task_type !== 'url')) {
+    const isNamaz = currentActiveSession && (
+      (currentActiveSession.id && String(currentActiveSession.id).startsWith('namaz-')) ||
+      currentActiveSession.task_type === 'namaz' ||
+      (currentActiveSession.taskName && currentActiveSession.taskName.toLowerCase().startsWith('namaz'))
+    );
+    // Strict mode is reserved strictly for Namaz (Daily tasks are non-strict)
+    if (!currentActiveSession || !isNamaz || !currentActiveSession.isStrict) {
       clearInterval(activeSessionWatchdog);
       activeSessionWatchdog = null;
       return;
@@ -905,8 +911,11 @@ function startFocusSessionInternal(sessionData) {
     }
   }
 
-  // 3. Watchdog for URL tasks AND strict blur sessions
-  if (isUrl || (shouldBlur && sessionData.isStrict)) {
+  // 3. Watchdog: Strict mode ONLY for Namaz (Daily tasks are non-strict)
+  const isNamaz = (sessionData.id && String(sessionData.id).startsWith('namaz-')) ||
+                  sessionData.task_type === 'namaz' ||
+                  (sessionData.taskName && sessionData.taskName.toLowerCase().startsWith('namaz'));
+  if (isNamaz && sessionData.isStrict) {
     startActiveWindowWatchdog();
   } else if (activeSessionWatchdog) {
     clearInterval(activeSessionWatchdog);

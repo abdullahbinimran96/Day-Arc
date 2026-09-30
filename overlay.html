@@ -165,12 +165,40 @@
         <span class="material-symbols-outlined" style="font-size: 16px;">shield</span> STRICT ENFORCEMENT ACTIVE (Early Exit Disabled)
       </div>
     </div>
+    <!-- Modal: Confirm End Session with Master Password -->
+    <div id="overlay-pwd-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(16px); z-index: 100; align-items: center; justify-content: center;">
+      <div style="background: #11121B; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; padding: 24px; max-width: 380px; width: 90%; text-align: left; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: #ffb4ab;">lock</span>
+            <span style="font-family: 'Fraunces', serif; font-size: 18px; color: #EDEDF3;">Confirm End Task</span>
+          </div>
+          <button id="btn-overlay-cancel-x" style="background: none; border: none; color: #888B9E; cursor: pointer; display: flex; align-items: center;"><span class="material-symbols-outlined" style="font-size: 20px;">close</span></button>
+        </div>
+        <p style="font-size: 12px; color: #888B9E; margin-bottom: 14px; line-height: 1.5;">To end this running task early, enter your Day Arc master password.</p>
+        <input id="input-overlay-pwd" type="password" placeholder="••••••••" style="width: 100%; padding: 10px 12px; background: #0A0A0F; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #EDEDF3; font-family: monospace; font-size: 14px; margin-bottom: 10px; outline: none;">
+        <div id="overlay-pwd-error" style="display: none; color: #ffb4ab; font-size: 11px; margin-bottom: 12px;">Incorrect master password.</div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button id="btn-overlay-cancel" style="padding: 8px 16px; border-radius: 8px; background: #1B1D2B; border: 1px solid rgba(255,255,255,0.1); color: #EDEDF3; cursor: pointer; font-size: 12px;">Keep Running</button>
+          <button id="btn-overlay-submit-pwd" style="padding: 8px 16px; border-radius: 8px; background: #ffb4ab; border: none; color: #690005; font-weight: 700; cursor: pointer; font-size: 12px;">Verify & End</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="src/services/audio-synth.js"></script>
   <script>
     let currentSession = null;
     let timerInterval = null;
+
+    function hashString(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return `h_${hash}`;
+    }
 
     if (window.dayarc) {
       window.dayarc.onStartOverlay((session) => {
@@ -252,11 +280,71 @@
       }, 250);
     }
 
-    document.getElementById('btn-overlay-dismiss').addEventListener('click', () => {
-      if (window.dayarc) {
+    const dismissBtn = document.getElementById('btn-overlay-dismiss');
+    const pwdModal = document.getElementById('overlay-pwd-modal');
+    const inputPwd = document.getElementById('input-overlay-pwd');
+    const errText = document.getElementById('overlay-pwd-error');
+    const btnCancel = document.getElementById('btn-overlay-cancel');
+    const btnCancelX = document.getElementById('btn-overlay-cancel-x');
+    const btnSubmit = document.getElementById('btn-overlay-submit-pwd');
+
+    function closeOverlayPwdModal() {
+      if (pwdModal) pwdModal.style.display = 'none';
+      if (inputPwd) inputPwd.value = '';
+      if (errText) errText.style.display = 'none';
+    }
+
+    if (btnCancel) btnCancel.addEventListener('click', closeOverlayPwdModal);
+    if (btnCancelX) btnCancelX.addEventListener('click', closeOverlayPwdModal);
+
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', async () => {
+        if (!window.dayarc) return;
+        try {
+          const settings = await window.dayarc.getSettings();
+          const masterHash = settings.master_password_hash || settings.private_tab_password_hash;
+          if (masterHash) {
+            if (pwdModal) pwdModal.style.display = 'flex';
+            if (errText) errText.style.display = 'none';
+            if (inputPwd) {
+              inputPwd.value = '';
+              setTimeout(() => inputPwd.focus(), 50);
+            }
+          } else {
+            window.dayarc.stopFocusSession();
+          }
+        } catch (e) {
+          window.dayarc.stopFocusSession();
+        }
+      });
+    }
+
+    async function handleVerifyAndStop() {
+      if (!window.dayarc) return;
+      try {
+        const settings = await window.dayarc.getSettings();
+        const masterHash = settings.master_password_hash || settings.private_tab_password_hash;
+        if (!masterHash || (inputPwd && hashString(inputPwd.value) === masterHash)) {
+          closeOverlayPwdModal();
+          window.dayarc.stopFocusSession();
+        } else {
+          if (errText) errText.style.display = 'block';
+          if (inputPwd) {
+            inputPwd.value = '';
+            inputPwd.focus();
+          }
+        }
+      } catch (e) {
         window.dayarc.stopFocusSession();
       }
-    });
+    }
+
+    if (btnSubmit) btnSubmit.addEventListener('click', handleVerifyAndStop);
+    if (inputPwd) {
+      inputPwd.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleVerifyAndStop();
+      });
+    }
   </script>
 </body>
 </html>

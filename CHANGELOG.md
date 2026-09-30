@@ -1,5 +1,20 @@
 # Day Arc — Maintenance & Release Changelog
 
+## [2026-09-30] — Round 29: Master Password & Strict Mode Separation
+
+### 1. Strict Mode Separation
+- **Daily & Time Management**: Strict mode toggle removed from task creation/editing. Daily tasks (blur and URL tasks) are strictly non-strict (`is_strict = 0`). Windows process killing and COM folder closing watchdog are fully disabled for daily tasks.
+- **Namaz Mode Exclusivity**: Strict mode is exclusively reserved for Namaz prayers. During Namaz, full-screen blur overlay runs with screen-saver priority and dismissal is disabled until prayer completion.
+
+### 2. App-Wide Master Password & Private Tab Unification
+- **App Launch Lock**: Day Arc now presents an app-level password gate on startup. On fresh installation, the user sets a master password and recovery code. On subsequent launches, Day Arc requires entering the master password before accessing panels or adding tasks.
+- **Unified Security**: Master password is synchronized with the Private Tab password, establishing a single security credential for the entire application.
+
+### 3. Early Task Exit Password Verification
+- **End-Task Verification**: When a task is running and the user clicks "Stop Session Early" / "End Task", Day Arc prompts for the master password. The task is only terminated if the password is verified. If incorrect, the task continues uninterrupted.
+- **Overlay Window Protection**: Fullscreen blur overlay (`overlay.html`) incorporates the same master password verification modal to eliminate any escape bypasses.
+- **Natural Expiration**: Tasks continue to finish automatically upon countdown timer completion without requiring password entry.
+
 ## [2026-08-27] — Comprehensive Daily Maintenance & System Self-Checkup
 
 ### 1. Scheduler & Enforcement Audit

@@ -37,8 +37,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Cryptographic hash helper for Master Password & Private Tab
+  function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return `h_${hash}`;
+  }
+
   // Initialize App
   await loadAllData();
+  setupAppMasterLock();
   setupNavigation();
   setupDashboard();
   setupNamaz();
@@ -158,6 +169,166 @@ document.addEventListener('DOMContentLoaded', async () => {
       privateBlocklist = await window.dayarc.getPrivateBlocklist();
     } catch (e) {
       console.error('Error loading initial data:', e);
+    }
+  }
+
+  // --- 0. APP MASTER LOCK & PASSWORD SECURITY ---
+  function setupAppMasterLock() {
+    const lockScreen = document.getElementById('app-lock-screen');
+    const loginView = document.getElementById('app-lock-login-view');
+    const setupView = document.getElementById('app-lock-setup-view');
+    const resetView = document.getElementById('app-lock-reset-view');
+
+    const formUnlock = document.getElementById('form-app-unlock');
+    const formSetup = document.getElementById('form-app-setup');
+    const formReset = document.getElementById('form-app-reset');
+    const btnForgot = document.getElementById('btn-app-forgot-pwd');
+    const btnResetCancel = document.getElementById('btn-app-reset-cancel');
+
+    if (!lockScreen) return;
+
+    const masterHash = settings.master_password_hash || settings.private_tab_password_hash;
+
+    if (!masterHash) {
+      // First-time Setup: require password before using Day Arc
+      lockScreen.classList.remove('hidden');
+      if (loginView) loginView.classList.add('hidden');
+      if (setupView) setupView.classList.remove('hidden');
+      if (resetView) resetView.classList.add('hidden');
+      const title = document.getElementById('app-lock-title');
+      const sub = document.getElementById('app-lock-subtitle');
+      if (title) title.textContent = 'Welcome to Day Arc';
+      if (sub) sub.textContent = 'Set your master password to protect Day Arc and your Private Tab.';
+      setTimeout(() => {
+        const inp = document.getElementById('input-app-setup-pwd');
+        if (inp) inp.focus();
+      }, 50);
+    } else {
+      // Unlock Screen
+      lockScreen.classList.remove('hidden');
+      if (loginView) loginView.classList.remove('hidden');
+      if (setupView) setupView.classList.add('hidden');
+      if (resetView) resetView.classList.add('hidden');
+      const title = document.getElementById('app-lock-title');
+      const sub = document.getElementById('app-lock-subtitle');
+      if (title) title.textContent = 'Day Arc Protected';
+      if (sub) sub.textContent = 'Enter your master password to unlock Day Arc.';
+      setTimeout(() => {
+        const inp = document.getElementById('input-app-unlock-pwd');
+        if (inp) inp.focus();
+      }, 50);
+    }
+
+    if (formSetup) {
+      formSetup.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pwd = document.getElementById('input-app-setup-pwd').value;
+        const confirmPwd = document.getElementById('input-app-setup-confirm').value;
+        const recovery = document.getElementById('input-app-setup-recovery').value.trim();
+        const errBox = document.getElementById('app-setup-error');
+        const errText = document.getElementById('app-setup-error-text');
+
+        if (pwd !== confirmPwd) {
+          if (errBox) errBox.classList.remove('hidden');
+          if (errText) errText.textContent = 'Passwords do not match.';
+          return;
+        }
+
+        const hashedPwd = hashString(pwd);
+        const hashedRecovery = hashString(recovery);
+
+        if (window.dayarc) {
+          await window.dayarc.setSetting('master_password_hash', hashedPwd);
+          await window.dayarc.setSetting('master_recovery_code', hashedRecovery);
+          await window.dayarc.setSetting('private_tab_password_hash', hashedPwd);
+          await window.dayarc.setSetting('private_tab_recovery_code', hashedRecovery);
+          settings = await window.dayarc.getSettings();
+        }
+
+        isPrivateUnlocked = true;
+        lockScreen.classList.add('hidden');
+        renderDashboard();
+      });
+    }
+
+    if (formUnlock) {
+      formUnlock.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const entered = document.getElementById('input-app-unlock-pwd').value;
+        const currentHash = settings.master_password_hash || settings.private_tab_password_hash;
+        const errBox = document.getElementById('app-unlock-error');
+
+        if (hashString(entered) === currentHash) {
+          if (errBox) errBox.classList.add('hidden');
+          isPrivateUnlocked = true;
+          lockScreen.classList.add('hidden');
+          document.getElementById('input-app-unlock-pwd').value = '';
+          renderDashboard();
+        } else {
+          if (errBox) errBox.classList.remove('hidden');
+          const inp = document.getElementById('input-app-unlock-pwd');
+          if (inp) {
+            inp.value = '';
+            inp.focus();
+          }
+        }
+      });
+    }
+
+    if (btnForgot) {
+      btnForgot.addEventListener('click', () => {
+        if (loginView) loginView.classList.add('hidden');
+        if (resetView) resetView.classList.remove('hidden');
+        setTimeout(() => {
+          const inp = document.getElementById('input-app-reset-code');
+          if (inp) inp.focus();
+        }, 50);
+      });
+    }
+
+    if (btnResetCancel) {
+      btnResetCancel.addEventListener('click', () => {
+        if (resetView) resetView.classList.add('hidden');
+        if (loginView) loginView.classList.remove('hidden');
+      });
+    }
+
+    if (formReset) {
+      formReset.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('input-app-reset-code').value.trim();
+        const newPwd = document.getElementById('input-app-reset-new-pwd').value;
+        const confirmNew = document.getElementById('input-app-reset-confirm').value;
+        const errBox = document.getElementById('app-reset-error');
+        const errText = document.getElementById('app-reset-error-text');
+
+        const savedRecovery = settings.master_recovery_code || settings.private_tab_recovery_code;
+
+        if (hashString(code) !== savedRecovery) {
+          if (errBox) errBox.classList.remove('hidden');
+          if (errText) errText.textContent = 'Incorrect recovery code.';
+          return;
+        }
+
+        if (newPwd !== confirmNew) {
+          if (errBox) errBox.classList.remove('hidden');
+          if (errText) errText.textContent = 'New passwords do not match.';
+          return;
+        }
+
+        const hashedNew = hashString(newPwd);
+        if (window.dayarc) {
+          await window.dayarc.setSetting('master_password_hash', hashedNew);
+          await window.dayarc.setSetting('private_tab_password_hash', hashedNew);
+          settings = await window.dayarc.getSettings();
+        }
+
+        alert('Master password reset successfully. Please enter your new password to unlock.');
+        if (resetView) resetView.classList.add('hidden');
+        if (loginView) loginView.classList.remove('hidden');
+        formReset.reset();
+        if (errBox) errBox.classList.add('hidden');
+      });
     }
   }
 
@@ -1718,7 +1889,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
         }
 
-        const isStrict = document.getElementById('check-strict-mode').checked;
         const soundId = document.getElementById('select-task-sound').value;
 
         const allowedUrls = Array.from(document.querySelectorAll('.allowed-url-input'))
@@ -1750,7 +1920,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           allowed_urls: allowedUrls,
           repeat_days: selectedScheduleMode === 'recurring' ? repeatDays : [],
           specific_date: specificDate,
-          is_strict: isStrict ? 1 : 0,
+          is_strict: 0, // Strict mode removed from Daily & Time Management (Namaz only)
           sound_id: soundId || null
         };
         if (taskId) {
@@ -1970,7 +2140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    if (strictCheck) strictCheck.checked = (task.is_strict === 1);
+    if (strictCheck) strictCheck.checked = false;
     if (soundSelect) soundSelect.value = task.sound_id || '';
 
     if (taskSheet) taskSheet.classList.remove('hidden');
@@ -2174,7 +2344,6 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div style="display: flex; align-items: center; gap: 8px;">
                 <h4 class="font-fraunces" style="font-size: 16px; color: #EDEDF3;">${task.name}</h4>
                 ${typeBadge}
-                ${task.is_strict ? '<span style="font-size: 10px; color: #ffb4ab; font-weight: 700;">STRICT</span>' : ''}
                 ${task.specific_date ? '<span style="font-size: 10px; color: #4FD6C4; font-weight: 700; font-family: var(--font-mono);">(Specific Date)</span>' : ''}
               </div>
               <p style="font-size: 12px; color: #888B9E; margin-top: 2px;">
@@ -2844,8 +3013,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (window.dayarc) {
-          await window.dayarc.setSetting('private_tab_password_hash', hashString(pwd));
-          await window.dayarc.setSetting('private_tab_recovery_code', hashString(recovery));
+          const hashedPwd = hashString(pwd);
+          const hashedRecovery = hashString(recovery);
+          await window.dayarc.setSetting('private_tab_password_hash', hashedPwd);
+          await window.dayarc.setSetting('private_tab_recovery_code', hashedRecovery);
+          await window.dayarc.setSetting('master_password_hash', hashedPwd);
+          await window.dayarc.setSetting('master_recovery_code', hashedRecovery);
           settings = await window.dayarc.getSettings();
         }
 
@@ -2860,7 +3033,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       formUnlock.addEventListener('submit', (e) => {
         e.preventDefault();
         const entered = document.getElementById('input-private-unlock-pwd').value;
-        const savedHash = settings.private_tab_password_hash;
+        const savedHash = settings.master_password_hash || settings.private_tab_password_hash;
 
         if (hashString(entered) === savedHash) {
           isPrivateUnlocked = true;
@@ -2894,7 +3067,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const newPwd = document.getElementById('input-reset-new-pwd').value;
         const confirmNew = document.getElementById('input-reset-confirm-pwd').value;
 
-        if (hashString(code) !== settings.private_tab_recovery_code) {
+        const savedRecovery = settings.master_recovery_code || settings.private_tab_recovery_code;
+        if (hashString(code) !== savedRecovery) {
           alert('Incorrect recovery code.');
           return;
         }
@@ -2905,7 +3079,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (window.dayarc) {
-          await window.dayarc.setSetting('private_tab_password_hash', hashString(newPwd));
+          const hashedNew = hashString(newPwd);
+          await window.dayarc.setSetting('private_tab_password_hash', hashedNew);
+          await window.dayarc.setSetting('master_password_hash', hashedNew);
           settings = await window.dayarc.getSettings();
         }
 
@@ -2952,7 +3128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const lockCard = document.getElementById('private-lock-card');
     const unlockedView = document.getElementById('private-unlocked-content');
 
-    const hasPassword = !!settings.private_tab_password_hash;
+    const hasPassword = !!(settings.master_password_hash || settings.private_tab_password_hash);
 
     if (!hasPassword) {
       setupCard.classList.remove('hidden');
@@ -3210,7 +3386,78 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- 10. FOCUS & BLUR OVERLAY ---
   function setupFocusOverlay() {
     const btnStop = document.getElementById('btn-stop-overlay');
-    if (btnStop) btnStop.addEventListener('click', () => stopFocusSession());
+    if (btnStop) {
+      btnStop.addEventListener('click', () => {
+        requestStopFocusSession();
+      });
+    }
+
+    const modalEndTask = document.getElementById('modal-end-task-password');
+    const formConfirmEndTask = document.getElementById('form-confirm-end-task');
+    const btnCancelEndTask = document.getElementById('btn-cancel-end-task');
+    const btnCancelEndTaskX = document.getElementById('btn-cancel-end-task-x');
+    const inputEndTaskPwd = document.getElementById('input-end-task-pwd');
+    const endTaskError = document.getElementById('end-task-error-text');
+
+    function closeEndTaskModal() {
+      if (modalEndTask) modalEndTask.classList.add('hidden');
+      if (inputEndTaskPwd) inputEndTaskPwd.value = '';
+      if (endTaskError) endTaskError.classList.add('hidden');
+    }
+
+    if (btnCancelEndTask) {
+      btnCancelEndTask.addEventListener('click', closeEndTaskModal);
+    }
+    if (btnCancelEndTaskX) {
+      btnCancelEndTaskX.addEventListener('click', closeEndTaskModal);
+    }
+
+    if (formConfirmEndTask) {
+      formConfirmEndTask.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pwd = inputEndTaskPwd ? inputEndTaskPwd.value : '';
+        const currentHash = settings.master_password_hash || settings.private_tab_password_hash;
+
+        if (currentHash) {
+          if (hashString(pwd) === currentHash) {
+            closeEndTaskModal();
+            stopFocusSession(false);
+          } else {
+            if (endTaskError) endTaskError.classList.remove('hidden');
+            if (inputEndTaskPwd) {
+              inputEndTaskPwd.value = '';
+              inputEndTaskPwd.focus();
+            }
+          }
+        } else {
+          closeEndTaskModal();
+          stopFocusSession(false);
+        }
+      });
+    }
+  }
+
+  function requestStopFocusSession() {
+    const currentHash = settings.master_password_hash || settings.private_tab_password_hash;
+    const modalEndTask = document.getElementById('modal-end-task-password');
+    const inputEndTaskPwd = document.getElementById('input-end-task-pwd');
+    const endTaskError = document.getElementById('end-task-error-text');
+
+    if (!currentHash) {
+      stopFocusSession(false);
+      return;
+    }
+
+    if (modalEndTask) {
+      modalEndTask.classList.remove('hidden');
+      if (endTaskError) endTaskError.classList.add('hidden');
+      if (inputEndTaskPwd) {
+        inputEndTaskPwd.value = '';
+        setTimeout(() => inputEndTaskPwd.focus(), 50);
+      }
+    } else {
+      stopFocusSession(false);
+    }
   }
 
   function startQuickFocus(durationMins = 25) {
