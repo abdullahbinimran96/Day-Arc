@@ -1,5 +1,15 @@
 # Day Arc — Maintenance & Release Changelog
 
+## [2026-09-30] — Round 30: Window Close/Reopen Master Password Relock & Settings Update
+
+### 1. Master Password Relock on Window Close & Reopen
+- **Continuous Gatekeeper**: Day Arc automatically re-locks every time the window is closed and reopened on desktop (from tray icon, taskbar shortcut, second-instance launch, or floating widget).
+- **Session State Preservation**: Background scheduler and active timers continue running accurately while the interface is protected behind the Master Password screen.
+- **Auto-Relock Triggers**: Main process intercepts `close` (hide to tray), `hide`, `show`, `second-instance`, tray click, and `open-main-window` events, broadcasting `app-window-relock` to immediately reset authentication and focus password input.
+
+### 2. Settings Panel Typography
+- Renamed "Private Tab Password" setting block to **"Master Password"** to reflect app-wide master security integration.
+
 ## [2026-09-30] — Round 29: Master Password & Strict Mode Separation
 
 ### 1. Strict Mode Separation

@@ -52,6 +52,7 @@ contextBridge.exposeInMainWorld('dayarc', {
   onStopOverlay: (callback) => ipcRenderer.on('stop-overlay', (event) => callback()),
   onSessionStartedBackground: (callback) => ipcRenderer.on('session-started-background', (event, data) => callback(data)),
   onSessionStopped: (callback) => ipcRenderer.on('session-stopped', (event) => callback()),
+  onAppWindowRelock: (callback) => ipcRenderer.on('app-window-relock', () => callback()),
 
   // Window Controls & Extensions
   minimizeWindow: () => ipcRenderer.invoke('minimize-window'),

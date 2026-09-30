@@ -332,6 +332,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // Relocks Day Arc every time the app window is closed and reopened
+  function relockAppScreen() {
+    const lockScreen = document.getElementById('app-lock-screen');
+    const loginView = document.getElementById('app-lock-login-view');
+    const setupView = document.getElementById('app-lock-setup-view');
+    const resetView = document.getElementById('app-lock-reset-view');
+    const errBox = document.getElementById('app-unlock-error');
+    const inp = document.getElementById('input-app-unlock-pwd');
+
+    const masterHash = settings.master_password_hash || settings.private_tab_password_hash;
+    if (!masterHash) {
+      return;
+    }
+
+    isPrivateUnlocked = false;
+    if (typeof lockPrivateTab === 'function') {
+      lockPrivateTab();
+    }
+
+    if (lockScreen) lockScreen.classList.remove('hidden');
+    if (loginView) loginView.classList.remove('hidden');
+    if (setupView) setupView.classList.add('hidden');
+    if (resetView) resetView.classList.add('hidden');
+    if (errBox) errBox.classList.add('hidden');
+    if (inp) {
+      inp.value = '';
+      setTimeout(() => {
+        inp.focus();
+      }, 60);
+    }
+  }
+  window.relockAppScreen = relockAppScreen;
+
+  if (window.dayarc && window.dayarc.onAppWindowRelock) {
+    window.dayarc.onAppWindowRelock(() => {
+      console.log('[Renderer] App window close/reopen event received. Relocking with master password.');
+      relockAppScreen();
+    });
+  }
+
   // --- 1. SIDEBAR NAVIGATION ---
   window.switchPanel = switchPanel;
 

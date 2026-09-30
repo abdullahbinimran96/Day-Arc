@@ -53,6 +53,9 @@ if (!gotTheLock) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       if (!mainWindow.isVisible()) mainWindow.show();
       mainWindow.focus();
+      if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('app-window-relock');
+      }
     }
   });
 }
@@ -103,7 +106,22 @@ async function createWindow() {
     const runInBackground = dbManager.getSetting('run_in_background') !== '0';
     if (!isQuitting && runInBackground) {
       event.preventDefault();
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('app-window-relock');
+      }
       mainWindow.hide();
+    }
+  });
+
+  mainWindow.on('hide', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('app-window-relock');
+    }
+  });
+
+  mainWindow.on('show', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('app-window-relock');
     }
   });
 
@@ -160,8 +178,12 @@ function createTray(icon) {
       label: 'Open Day Arc',
       click: () => {
         if (mainWindow) {
-          mainWindow.show();
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          if (!mainWindow.isVisible()) mainWindow.show();
           mainWindow.focus();
+          if (!mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('app-window-relock');
+          }
         }
       }
     },
@@ -188,11 +210,15 @@ function createTray(icon) {
 
   const openApp = () => {
     if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
       if (mainWindow.isVisible()) {
         mainWindow.focus();
       } else {
         mainWindow.show();
         mainWindow.focus();
+      }
+      if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('app-window-relock');
       }
     }
   };
@@ -1131,6 +1157,7 @@ ipcMain.handle('open-main-window', () => {
     if (mainWindow.isMinimized()) mainWindow.restore();
     if (!mainWindow.isVisible()) mainWindow.show();
     mainWindow.focus();
+    mainWindow.webContents.send('app-window-relock');
   }
   return true;
 });
