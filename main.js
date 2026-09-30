@@ -460,17 +460,13 @@ function shouldBlurTask(taskOrSession) {
     return taskOrSession.is_enabled !== 0 && taskOrSession.is_enabled !== false;
   }
 
-  // 2. URL tasks: NEVER blur by default
+  // 2. URL tasks: Blur desktop behind Chrome so user sees timer on minimize/close
   if (taskOrSession.isUrlTask || taskOrSession.task_type === 'url') {
-    return false;
-  }
-
-  // 3. Normal / Timed tasks: Blur ONLY if user explicitly chose blur mode & strict mode
-  if (taskOrSession.task_type === 'blur' && (taskOrSession.is_strict === 1 || taskOrSession.isStrict === true)) {
     return true;
   }
 
-  return false;
+  // 3. Normal / Timed tasks: Blur
+  return true;
 }
 
 function focusBrowserWindow(browserName = 'chrome') {
@@ -528,11 +524,6 @@ function executeUrlTask(sessionData) {
   // Send START_SESSION command to Chrome extension
   extensionServer.startSession(sessionData);
 
-  // Ensure blur overlay is hidden
-  if (blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
-    blurOverlayWindow.hide();
-  }
-
   return true;
 }
 
@@ -568,9 +559,6 @@ function triggerStrictWindowEnforcement(unauthorizedProc = '') {
     extensionServer.restoreBrowserWindow();
 
     focusBrowserWindow(defaultBrowser);
-    if (blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
-      blurOverlayWindow.hide();
-    }
   }
 }
 
@@ -961,8 +949,12 @@ function startFocusSessionInternal(sessionData) {
     const { x, y, width, height } = primaryDisplay.workArea;
     blurOverlayWindow.setBounds({ x, y, width, height });
     blurOverlayWindow.show();
-    blurOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
-    blurOverlayWindow.focus();
+    if (isUrl) {
+      blurOverlayWindow.setAlwaysOnTop(false);
+    } else {
+      blurOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
+      blurOverlayWindow.focus();
+    }
     blurOverlayWindow.webContents.send('start-overlay', sessionData);
   } else {
     if (blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {
@@ -1117,6 +1109,22 @@ ipcMain.handle('start-focus-session', async (event, sessionData) => {
 
 function stopFocusSessionInternal() {
   console.log('[SESSION] Stopping active focus session and releasing all desktop & browser restrictions.');
+
+  if (currentActiveSession) {
+    const targetNow = getBackgroundTargetNow();
+    const y = targetNow.getFullYear();
+    const m = String(targetNow.getMonth() + 1).padStart(2, '0');
+    const d = String(targetNow.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`;
+    if (currentActiveSession.id) {
+      triggeredTasksForToday.add(`${todayStr}_task_${currentActiveSession.id}`);
+      if (currentActiveSession.start_time) {
+        triggeredTasksForToday.add(`${todayStr}_task_${currentActiveSession.id}_${currentActiveSession.start_time}`);
+      }
+      triggeredTasksForToday.add(`${todayStr}_namaz_${currentActiveSession.id}`);
+    }
+  }
+
   currentActiveSession = null;
   dbManager.setSetting('active_session_state', '');
 
@@ -1128,6 +1136,9 @@ function stopFocusSessionInternal() {
 
   // 2. Immediately stop Chrome Extension URL restrictions (releases all browser tabs & navigation)
   extensionServer.stopSession();
+
+  // 3. Immediately close the launched task browser window
+  browserProfiles.closeTaskBrowser();
 
   // 3. Hide blur overlay
   if (blurOverlayWindow && !blurOverlayWindow.isDestroyed()) {

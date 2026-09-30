@@ -159,7 +159,7 @@
     <!-- Actions / Strict indicator -->
     <div id="actions-box">
       <button id="btn-overlay-dismiss" class="btn-end-session">
-        <span class="material-symbols-outlined" style="font-size: 16px;">close</span> End Session Early
+        <span class="material-symbols-outlined" style="font-size: 16px;">close</span> End Task
       </button>
       <div id="strict-indicator" class="strict-badge" style="display: none;">
         <span class="material-symbols-outlined" style="font-size: 16px;">shield</span> STRICT ENFORCEMENT ACTIVE (Early Exit Disabled)
@@ -235,13 +235,11 @@
           : 'Desktop screen is blurred to maintain deep uninterrupted concentration.';
       }
 
-      if (session.isStrict) {
-        if (dismissBtn) dismissBtn.style.display = 'none';
-        if (strictInd) strictInd.style.display = 'inline-flex';
-      } else {
-        if (dismissBtn) dismissBtn.style.display = 'inline-flex';
-        if (strictInd) strictInd.style.display = 'none';
+      if (dismissBtn) {
+        dismissBtn.style.display = 'inline-flex';
+        dismissBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">close</span> End Task';
       }
+      if (strictInd) strictInd.style.display = 'none';
 
       // Play Sound
       if (session.sound && window.soundEngine) {
@@ -326,7 +324,7 @@
         const masterHash = settings.master_password_hash || settings.private_tab_password_hash;
         if (!masterHash || (inputPwd && hashString(inputPwd.value) === masterHash)) {
           closeOverlayPwdModal();
-          window.dayarc.stopFocusSession();
+          await window.dayarc.stopFocusSession();
         } else {
           if (errText) errText.style.display = 'block';
           if (inputPwd) {
@@ -335,7 +333,7 @@
           }
         }
       } catch (e) {
-        window.dayarc.stopFocusSession();
+        await window.dayarc.stopFocusSession();
       }
     }
 

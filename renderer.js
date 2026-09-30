@@ -3646,14 +3646,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (window.soundEngine) window.soundEngine.stopCurrent();
 
-    if (activeFocusSession && window.dayarc) {
+    if (window.dayarc) {
       await window.dayarc.stopFocusSession();
-      await window.dayarc.recordFocusSession({
-        task_id: activeFocusSession.id,
-        task_name: activeFocusSession.name,
-        duration_mins: activeFocusSession.duration_mins || 25,
-        completed: completed
-      });
+      if (activeFocusSession) {
+        await window.dayarc.recordFocusSession({
+          task_id: activeFocusSession.id,
+          task_name: activeFocusSession.name,
+          duration_mins: activeFocusSession.duration_mins || 25,
+          completed: completed
+        });
+      }
     }
 
     activeFocusSession = null;

@@ -23,6 +23,7 @@ class BrowserProfileService {
       }
     } catch (e) {}
     this.extensionPath = extPath;
+    this.lastLaunchedPid = null;
   }
 
   detectBrowsers() {
@@ -243,7 +244,11 @@ class BrowserProfileService {
       if (this.extensionPath && fs.existsSync(this.extensionPath)) {
         args.push(`--load-extension=${this.extensionPath}`);
       }
-      args.push(...urlList);
+      if (urlList.length === 1) {
+        args.push(`--app=${urlList[0]}`);
+      } else {
+        args.push('--new-window', ...urlList);
+      }
     }
 
     const commandStr = `"${exePath}" ${args.map(a => `"${a}"`).join(' ')}`;
@@ -256,6 +261,7 @@ class BrowserProfileService {
         shell: false
       });
       child.unref();
+      this.lastLaunchedPid = child.pid;
       console.log(`[TRIGGER] Browser launch result: success (PID: ${child.pid})`);
     } catch (err) {
       console.error(`[TRIGGER] Browser launch result: error (spawn failed, trying exec) — ${err.message}`);
@@ -266,6 +272,18 @@ class BrowserProfileService {
           console.log(`[TRIGGER] Browser launch result: success (exec fallback)`);
         }
       });
+    }
+  }
+
+  closeTaskBrowser() {
+    if (this.lastLaunchedPid) {
+      try {
+        console.log(`[TRIGGER] Terminating task browser process (PID: ${this.lastLaunchedPid})`);
+        exec(`taskkill /F /PID ${this.lastLaunchedPid} /T`, () => {});
+      } catch (e) {
+        console.warn('[TRIGGER] Could not terminate task browser process:', e.message);
+      }
+      this.lastLaunchedPid = null;
     }
   }
 }
