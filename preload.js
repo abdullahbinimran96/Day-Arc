@@ -59,6 +59,7 @@ contextBridge.exposeInMainWorld('dayarc', {
   maximizeWindow: () => ipcRenderer.invoke('maximize-window'),
   closeWindow: () => ipcRenderer.invoke('close-window'),
   openMainWindow: () => ipcRenderer.invoke('open-main-window'),
+  openExternal: (url) => ipcRenderer.invoke('open-external-url', url),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   setTaskbarPreview: (title, tooltip) => ipcRenderer.invoke('set-taskbar-preview', title, tooltip),
   updateTaskbarCountdown: (data) => ipcRenderer.invoke('update-taskbar-countdown', data),

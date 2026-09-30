@@ -3808,4 +3808,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (lastTriggeredTaskKey === timeKey) return;
   }
+
+  // Handle Author Branding Link Click (Opens in default OS browser)
+  const authorLink = document.getElementById('link-author-branding');
+  if (authorLink) {
+    authorLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetUrl = authorLink.getAttribute('href') || 'https://www.facebook.com/abdullah.imran.884940';
+      if (window.dayarc && window.dayarc.openExternal) {
+        window.dayarc.openExternal(targetUrl);
+      } else {
+        window.open(targetUrl, '_blank');
+      }
+    });
+  }
 });

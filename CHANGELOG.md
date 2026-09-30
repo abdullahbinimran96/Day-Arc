@@ -1,5 +1,14 @@
 # Day Arc — Maintenance & Release Changelog
 
+## [2026-09-30] — Round 31: Creator Branding Footer Bar
+
+### 1. Persistent Creator Branding
+- **Lower Border Footer**: Added a sleek, low-profile sticky footer bar across all pages of the application:
+  - Displays `"Built by Abdullah Bin Imran"` with an amber accent dot and link icon.
+  - Links directly to author's profile: `https://www.facebook.com/abdullah.imran.884940`.
+- **Non-Disturbing Aesthetic**: Styled with `rgba(10, 10, 15, 0.88)` background, `14px` backdrop blur, and subtle hairline border (`32px` total height), ensuring full consistency with the dark glassmorphic design without taking screen real-estate or disturbing any interactive elements.
+- **Safe External Link Handling**: Wired Electron `shell.openExternal` and `setWindowOpenHandler` so clicking the link cleanly opens in the user's default Windows browser without navigating the Electron app window.
+
 ## [2026-09-30] — Round 30: Window Close/Reopen Master Password Relock & Settings Update
 
 ### 1. Master Password Relock on Window Close & Reopen

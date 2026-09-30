@@ -1,7 +1,7 @@
 // Day Arc Main Process
 // Manages App Lifecycle, System Tray, Workarea Desktop Blur Window & Startup Automation
 
-const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, screen, powerMonitor } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, screen, powerMonitor, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
@@ -100,6 +100,21 @@ async function createWindow() {
   });
 
   mainWindow.loadFile('index.html');
+
+  // Open external links safely in the default system browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
 
   // Handle close to tray (Always On / Run in background mode)
   mainWindow.on('close', (event) => {
@@ -1213,6 +1228,13 @@ ipcMain.handle('update-taskbar-countdown', (event, data) => {
     if (taskbarWidgetWindow && !taskbarWidgetWindow.isDestroyed() && taskbarWidgetWindow.isVisible()) {
       taskbarWidgetWindow.hide();
     }
+  }
+  return true;
+});
+
+ipcMain.handle('open-external-url', async (event, url) => {
+  if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+    shell.openExternal(url);
   }
   return true;
 });

@@ -1,10 +1,11 @@
-﻿// Comprehensive Verification Suite for Round 29 & Round 30:
+﻿// Comprehensive Verification Suite for Round 29, 30 & 31:
 // 1. Strict Mode removed from Daily & Time Management tasks.
 // 2. Strict Mode exclusively maintained for Namaz prayers.
 // 3. App-wide Master Password protecting app launch, unified with Private Tab.
 // 4. Master Password verification required when user attempts to End Task early.
 // 5. Settings panel displays "Master Password" instead of "Private Tab Password".
 // 6. Master Password prompt required every time Day Arc window is closed and reopened.
+// 7. Lower border branding across all panels ("Built by Abdullah Bin Imran" with Facebook link).
 
 const fs = require('fs');
 const path = require('path');
@@ -21,7 +22,7 @@ function hashString(str) {
 
 async function runRound29Test() {
   console.log('================================================================');
-  console.log('  DAY ARC — ROUND 29 & 30: MASTER PASSWORD & RELOCK ENFORCEMENT QA');
+  console.log('  DAY ARC — ROUND 29-31: MASTER PASSWORD, RELOCK & BRANDING QA  ');
   console.log('================================================================\n');
 
   function record(id, title, passed, detail = '') {
@@ -33,6 +34,7 @@ async function runRound29Test() {
   const rendererJs = fs.readFileSync(path.join(__dirname, '..', 'renderer.js'), 'utf8');
   const preloadJs = fs.readFileSync(path.join(__dirname, '..', 'preload.js'), 'utf8');
   const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const indexCss = fs.readFileSync(path.join(__dirname, '..', 'index.css'), 'utf8');
   const overlayHtml = fs.readFileSync(path.join(__dirname, '..', 'overlay.html'), 'utf8');
   const databaseJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'db', 'database.js'), 'utf8');
 
@@ -110,7 +112,7 @@ async function runRound29Test() {
   record(11, 'Preload bridge exposes onAppWindowRelock listener',
     preloadHasRelock, 'Renderer receives app-window-relock events');
 
-  // 12. Main.js sends app-window-relock on close, hide, show, second-instance, tray, and open IPC
+  // 12. Main.js sends app-window-relock on close, hide, and show
   const mainSendsRelock = mainJs.includes("mainWindow.webContents.send('app-window-relock');") &&
                           mainJs.includes("mainWindow.on('close'") &&
                           mainJs.includes("mainWindow.on('hide'") &&
@@ -124,7 +126,31 @@ async function runRound29Test() {
   record(13, 'Renderer re-locks app lock screen upon receiving window reopen event',
     rendererHasRelock, 'relockAppScreen and onAppWindowRelock active');
 
-  // 14. Database operations & fresh install state check
+  // 14. Branding element in index.html (Abdullah Bin Imran + Facebook link)
+  const brandingInHtml = indexHtml.includes('id="app-branding-bar"') &&
+                         indexHtml.includes('Abdullah Bin Imran') &&
+                         indexHtml.includes('href="https://www.facebook.com/abdullah.imran.884940"') &&
+                         indexHtml.includes('Built by');
+  record(14, 'Lower border branding footer present with author name and Facebook link',
+    brandingInHtml, 'Abdullah Bin Imran & link verified');
+
+  // 15. Branding CSS styles in index.css
+  const brandingCss = indexCss.includes('.app-branding-footer') &&
+                      indexCss.includes('.branding-author-link') &&
+                      indexCss.includes('position: sticky') &&
+                      indexCss.includes('bottom: 0');
+  record(15, 'Branding CSS configured with sticky lower-border alignment',
+    brandingCss, 'Sleek, unobtrusive styling active');
+
+  // 16. Safe external link opening in main.js, preload.js, and renderer.js
+  const safeLink = mainJs.includes("shell.openExternal") &&
+                   mainJs.includes("setWindowOpenHandler") &&
+                   preloadJs.includes("openExternal") &&
+                   rendererJs.includes("link-author-branding");
+  record(16, 'External link opens in default system browser safely',
+    safeLink, 'shell.openExternal and click handler active');
+
+  // 17. Database operations & fresh install state check
   await dbManager.init();
   dbManager.setSetting('master_password_hash', expectedHash);
   const retrievedHash = dbManager.getSetting('master_password_hash');
@@ -135,11 +161,11 @@ async function runRound29Test() {
   const tasksAfterReset = dbManager.getTasks();
   const resetClean = tasksAfterReset.length === 0;
 
-  record(14, 'Database setting persistence and clean 0-task reset validated',
+  record(17, 'Database setting persistence and clean 0-task reset validated',
     dbSavedCorrectly && resetClean, `Retrieved: ${retrievedHash}, tasks remaining: ${tasksAfterReset.length}`);
 
   console.log('\n================================================================');
-  console.log('🎉 ALL 14 ROUND 29 & 30 VERIFICATION TESTS PASSED 100% GREEN!');
+  console.log('🎉 ALL 17 ROUND 29-31 VERIFICATION TESTS PASSED 100% GREEN!');
   console.log('================================================================\n');
 }
 
